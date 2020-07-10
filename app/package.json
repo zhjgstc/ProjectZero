@@ -1,0 +1,12 @@
+{
+  "name": "projectzero",
+  "version": "1.0.0",
+  "description": "db tool",
+  "main": "main.js",
+  "scripts": {},
+  "author": "章建国",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^9.0.5"
+  }
+}
