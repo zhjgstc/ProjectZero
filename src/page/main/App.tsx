@@ -187,8 +187,8 @@ export default class App extends React.Component<{}, IState> {
                                 {
                                     this.state.dbList ? this.state.dbList.map((item, index) => {
                                         return (
-                                            <div>
-                                                <button key={index}>{item.name}</button>
+                                            <div key={index}>
+                                                <button>{item.name}</button>
                                                 <br />
                                             </div>
                                         )
