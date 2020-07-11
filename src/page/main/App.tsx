@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import MySqlForm from '../NewConnection/MySql/Form';
+import * as utils from '../../utils/Utils';
 
 const mysql = window.require('mysql');
 var conn: any;
@@ -10,7 +11,8 @@ interface IState {
     sql: string,
     fields: Array<any>,
     results: Array<any>,
-    showNewConnForm: boolean
+    showNewConnForm: boolean,
+    dbList: Array<any>
 }
 
 export default class App extends React.Component<{}, IState> {
@@ -21,11 +23,12 @@ export default class App extends React.Component<{}, IState> {
             sql: "show databases;show databases;",
             fields: new Array<any>(),
             results: new Array<any>(),
-            showNewConnForm: false
+            showNewConnForm: false,
+            dbList: new Array<any>()
         }
     }
     componentDidMount() {
-
+        this.initData();
     }
 
     //设置textareaValue
@@ -59,6 +62,11 @@ export default class App extends React.Component<{}, IState> {
         console.log(error);
         console.log(info);
         this.setState({ text: "无法连接数据库" });
+    }
+    initData = () => {
+        const store = new utils.Store();
+        var list = store.get(utils.DBListKey);
+        this.setState({ dbList: list });
     }
 
     querySql = () => {
@@ -107,7 +115,7 @@ export default class App extends React.Component<{}, IState> {
                                         {
                                             col.map((colItem, colIndex) => {
                                                 var value = "";
-                                                if (colItem["type"] == 12) {
+                                                if (colItem["type"] === 12) {
                                                     value = moment(item[colItem]).format("yyyy-MM-DD HH:mm:ss");
                                                 } else {
                                                     value = item[colItem.name];
@@ -136,7 +144,7 @@ export default class App extends React.Component<{}, IState> {
 
     renderTables = (col: Array<any>, list: Array<any>) => {
         var tables = [];
-        if (col.length == 1) {
+        if (col.length === 1) {
             if (col) {
                 tables.push(this.renderTable(col, list));
             } else {
@@ -166,27 +174,40 @@ export default class App extends React.Component<{}, IState> {
                     <button onClick={() => this.setState({ showNewConnForm: true })}>新建连接</button>
                     <br />
                     {
-                        this.state.showNewConnForm ? <MySqlForm onCancel={() => this.setState({ showNewConnForm: false })}></MySqlForm> : null
+                        this.state.showNewConnForm ? <MySqlForm onSubmit={() => { this.initData() }} onCancel={() => this.setState({ showNewConnForm: false })}></MySqlForm> : null
                     }
                 </div>
                 <br />
                 <table>
-                    <tr>
-                        <td>
-                            <button onDoubleClick={() => this.openConnection()}>打开数据库</button>
-                        </td>
-                        <td>
-                            <textarea rows={5} value={this.state.sql}
-                                onChange={this.handleTextareaChange.bind(this)}>
-                            </textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <button onClick={() => this.querySql()}>执行sql</button>
-                        </td>
-                    </tr>
+                    <thead></thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <button onDoubleClick={() => this.openConnection()}>打开数据库</button>
+                                {
+                                    this.state.dbList ? this.state.dbList.map((item, index) => {
+                                        return (
+                                            <div>
+                                                <button key={index}>{item.name}</button>
+                                                <br />
+                                            </div>
+                                        )
+                                    }) : null
+                                }
+                            </td>
+                            <td>
+                                <textarea rows={5} value={this.state.sql}
+                                    onChange={this.handleTextareaChange.bind(this)}>
+                                </textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <button onClick={() => this.querySql()}>执行sql</button>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
 
                 <br />
