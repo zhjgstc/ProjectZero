@@ -12,3 +12,8 @@ export const DBListKey: string = "DBListKey";
  * Store数据持久化存储
  */
 export const Store = window.require('electron-store');
+
+/**
+ * mysql数据库
+ */
+export const MySql = window.require('mysql');

@@ -3,7 +3,6 @@ import moment from 'moment';
 import MySqlForm from '../NewConnection/MySql/Form';
 import * as utils from '../../utils/Utils';
 
-const mysql = window.require('mysql');
 var conn: any;
 
 interface IState {
@@ -38,8 +37,7 @@ export default class App extends React.Component<{}, IState> {
         })
     }
     openConnection = () => {
-
-        conn = mysql.createConnection({
+        conn = utils.MySql.createConnection({
             host: 'localhost',
             user: 'root',
             password: 'root',
