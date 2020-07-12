@@ -2,6 +2,8 @@ import React from 'react';
 import moment from 'moment';
 import MySqlForm from '../NewConnection/MySql/Form';
 import * as utils from '../../utils/Utils';
+import { Container, Grid, Button } from '@material-ui/core';
+import NewConnButton from '../NewConnection/TopButton/Button';
 
 var conn: any;
 
@@ -167,10 +169,31 @@ export default class App extends React.Component<{}, IState> {
 
     render() {
         return (
-            <div>
+            <Container maxWidth="sm">
+                <Grid container spacing={3} style={{ paddingTop: "10px" }}>
+                    <Grid item xs={12}>
+                        <NewConnButton></NewConnButton>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Button color="primary" variant="contained" onClick={() => this.setState({ showNewConnForm: true })}>新建连接</Button>
+                    </Grid>
+                    <Grid item xs={6}>
+
+                    </Grid>
+                    <Grid item xs={3}>
+
+                    </Grid>
+                    <Grid item xs={3}>
+
+                    </Grid>
+                    <Grid item xs={3}>
+
+                    </Grid>
+                    <Grid item xs={3}>
+
+                    </Grid>
+                </Grid>
                 <div>
-                    <button onClick={() => this.setState({ showNewConnForm: true })}>新建连接</button>
-                    <br />
                     {
                         this.state.showNewConnForm ? <MySqlForm onSubmit={() => { this.initData() }} onCancel={() => this.setState({ showNewConnForm: false })}></MySqlForm> : null
                     }
@@ -215,7 +238,7 @@ export default class App extends React.Component<{}, IState> {
                             this.state.text
                     }
                 </div>
-            </div >
+            </Container>
         );
     }
 }
