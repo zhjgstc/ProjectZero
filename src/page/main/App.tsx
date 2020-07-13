@@ -1,20 +1,31 @@
 import React from 'react';
 import moment from 'moment';
 import * as utils from '../../utils/Utils';
-import { Container, Grid, AppBar, Toolbar } from '@material-ui/core';
+import { Grid, AppBar, Toolbar, Tabs, Tab } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
 import LeftBar from './LeftBar';
+import IConfig from '../../models/MySql';
+import Content from './Content';
 var _ = require('lodash');
 
 
 var conn: any;
+
+interface DBCcnfigItem {
+    item: IConfig,
+    opened: boolean,
+    component: any
+}
+
 interface IState {
     text: string,
     sql: string,
     fields: Array<any>,
     results: Array<any>,
     showNewConnForm: boolean,
-    dbList: Array<any>
+    dbList: Array<any>,
+    conntedList?: Array<DBCcnfigItem>,
+    selectItem: number
 }
 
 export default class App extends React.Component<{}, IState> {
@@ -26,7 +37,8 @@ export default class App extends React.Component<{}, IState> {
             fields: new Array<any>(),
             results: new Array<any>(),
             showNewConnForm: false,
-            dbList: new Array<any>()
+            dbList: new Array<any>(),
+            selectItem: -1
         }
     }
     componentDidMount() {
@@ -67,8 +79,11 @@ export default class App extends React.Component<{}, IState> {
         const store = new utils.Store();
         var list = store.get(utils.DBListKey);
         list = _.orderBy(list, ['id'], ['desc']);
-
-        this.setState({ dbList: list });
+        var items = new Array<DBCcnfigItem>();
+        list.forEach((element: IConfig) => {
+            items.push({ item: element, opened: false, component: <Content key={element.id} selectDB={element}></Content> })
+        });
+        this.setState({ dbList: list, conntedList: items });
     }
 
     querySql = () => {
@@ -169,10 +184,16 @@ export default class App extends React.Component<{}, IState> {
         return tables;
     }
 
+
+    handleLeftBarOnClick = (item: IConfig) => {
+        console.log(item);
+        this.setState({ selectItem: item.id });
+    }
+
     render() {
         return (
             <div>
-                <AppBar style={{ backgroundColor: 'lightgrey', position: "relative" }}>
+                <AppBar style={{ backgroundColor: '#D9D9D9', position: "relative" }}>
                     <Toolbar>
                         <NewConnButton dialogClose={(value?: boolean) => { if (value) { this.initData() } }}></NewConnButton>
                     </Toolbar>
@@ -180,45 +201,28 @@ export default class App extends React.Component<{}, IState> {
 
                 <Grid container spacing={3} style={{ paddingTop: "10px" }}>
                     <Grid item xs={3}>
-                        <LeftBar source={this.state.dbList}></LeftBar>
+                        <LeftBar source={this.state.dbList} onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}></LeftBar>
                     </Grid>
                     <Grid item xs={9}>
-                        <Grid>
-                            <textarea rows={5} value={this.state.sql}
-                                onChange={this.handleTextareaChange.bind(this)}>
-                            </textarea>
-                            <button onClick={() => this.querySql()}>执行sql</button>
-
-                            {
-                                this.state.fields && this.state.fields.length > 0 ? this.renderTables(this.state.fields, this.state.results) :
-                                    this.state.text
-                            }
-
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={6}>
                         {
-                            this.state.dbList ? this.state.dbList.map((item, index) => {
-                                return (
-                                    <div key={index}>
-                                        <button>{item.name}</button>
-                                        <br />
-                                    </div>
-                                )
+                            this.state.conntedList && this.state.selectItem > 0 ? this.state.conntedList.map((item, index) => {
+                                if (item.item.id == this.state.selectItem) {
+                                    return item.component;
+                                }
                             }) : null
                         }
-                    </Grid>
-                    <Grid item xs={6}>
-                        <textarea rows={5} value={this.state.sql}
+
+                        {/* <textarea rows={5} value={this.state.sql}
                             onChange={this.handleTextareaChange.bind(this)}>
                         </textarea>
                         <button onClick={() => this.querySql()}>执行sql</button>
-                    </Grid>
-                    <Grid item xs={12}>
+
                         {
                             this.state.fields && this.state.fields.length > 0 ? this.renderTables(this.state.fields, this.state.results) :
                                 this.state.text
-                        }
+                        } */}
+
+
                     </Grid>
                 </Grid>
             </div>

@@ -6,24 +6,22 @@ import { Grid, TextField, AppBar, Toolbar, Button } from '@material-ui/core';
 
 var _ = require('lodash');
 var CryptoJS = require("crypto-js");
-const mysql = window.require('mysql');
 
-interface IState {
-    connConfig: IConfig,
-}
 
 interface IProps {
-    onCancel: any,
-    onSubmit?: any
+    onConnection: any,
+    selectDB: IConfig
 }
 
-
+interface IState {
+    connConfig: IConfig
+}
 
 export default class MySqlFrom extends React.Component<IProps, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            connConfig: {
+            connConfig: this.props.selectDB ? this.props.selectDB : {
                 id: -1,
                 name: '',
                 host: '',
@@ -35,16 +33,8 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         }
     }
 
-    componentDidMount() {
-    }
-
-    onCancel_Click = () => {
-        if (this.props.onCancel) {
-            this.props.onCancel();
-        }
-    }
     onSubmit_Click = () => {
-        var connConfig = this.state.connConfig;
+        var connConfig = this.props.selectDB;
         connConfig.createDate = moment(new Date()).format("yyyy-MM-DD hh:mm:ss");
         if (connConfig.pwd) {
             connConfig.pwd = CryptoJS.AES.encrypt(connConfig.pwd, utils.CryptoKey).toString();
@@ -77,14 +67,14 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
             store.set(utils.DBListKey, list);
         }
 
-        if (this.props.onSubmit) {
-            this.props.onSubmit(true);
+        if (this.props.onConnection) {
+            this.props.onConnection(true);
         }
     }
 
-    onTestConnection_Click = () => {
+    onConnection_Click = () => {
         console.log(this.state.connConfig);
-        var conn = mysql.createConnection({
+        var conn = utils.MySql.createConnection({
             host: this.state.connConfig.host,
             user: this.state.connConfig.user,
             password: this.state.connConfig.pwd,
@@ -130,9 +120,8 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
                 </div>
 
                 <div style={{ paddingTop: "10px" }}>
-                    <TextField id="standard-basic" label="密码" value={this.state.connConfig.pwd} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                    <TextField id="standard-basic" label="密码" value="********" onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
                 </div>
-
                 <br />
                 <AppBar style={{
                     backgroundColor: "transparent",
@@ -144,13 +133,13 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
                             container
                             direction="row">
                             <Grid item xs={8}>
-                                <Button color="primary" variant="contained" onClick={() => this.onTestConnection_Click()}>测试连接</Button>
+                                <Button color="primary" variant="contained" onClick={() => this.onConnection_Click()}>连接数据库</Button>
                             </Grid>
                             <Grid item xs={2}>
                                 <Button color="primary" variant="contained" onClick={() => this.onSubmit_Click()}>保存</Button>
                             </Grid>
                             <Grid item xs={2}>
-                                <Button color="primary" variant="contained" onClick={() => this.onCancel_Click()}>取消</Button>
+                                <Button color="primary" variant="contained" onClick={() => this.onSubmit_Click()}>删除</Button>
                             </Grid>
                         </Grid>
                     </Toolbar>

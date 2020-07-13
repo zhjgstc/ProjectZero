@@ -3,11 +3,12 @@ import List from '@material-ui/core/List';
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/Inbox';
-import DraftsIcon from '@material-ui/icons/Drafts';
+import StorageIcon from '@material-ui/icons/Storage';
+import IConfig from '../../models/MySql';
 
 interface IProps {
-    source?: Array<any>
+    source?: Array<any>,
+    onClick?: any
 }
 
 interface IState {
@@ -20,16 +21,22 @@ export default class LeftBar extends React.Component<IProps, IState>{
         }
     }
 
+    handleOnClick = (item: IConfig) => {
+        if (this.props.onClick) {
+            this.props.onClick(item);
+        }
+    }
+
     render() {
         return (
-            <div>
+            <div style={{ borderRightWidth: "1px", borderRightColor: "#D4D4D4" }}>
                 <List>
                     {
-                        this.props.source ? this.props.source.map((item, index) => {
+                        this.props.source ? this.props.source.map((item: IConfig, index) => {
                             return (
-                                <ListItem button key={index} onClick={() => { alert('123') }}>
+                                <ListItem button key={index} onClick={() => this.handleOnClick(item)}>
                                     <ListItemIcon>
-                                        <InboxIcon />
+                                        <StorageIcon />
                                     </ListItemIcon>
                                     <ListItemText primary={item.name} />
                                 </ListItem>

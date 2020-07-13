@@ -33,10 +33,10 @@ export default class NewConnectionButton extends React.Component<IProps, IState>
             dialogTitle: "",
             DBList: [
                 { key: 0, name: "MySQL", component: <MySqlForm onSubmit={(value?: boolean) => { this.handleDialogClose(value) }} onCancel={() => { this.handleDialogClose() }}></MySqlForm> },
-                { key: 1, name: "PostgreSQL", component: null },
-                { key: 2, name: "Oracle", component: null },
-                { key: 3, name: "SQLite", component: null },
-                { key: 4, name: "SQL Server", component: null },
+                // { key: 1, name: "PostgreSQL", component: null },
+                // { key: 2, name: "Oracle", component: null },
+                // { key: 3, name: "SQLite", component: null },
+                // { key: 4, name: "SQL Server", component: null },
             ]
         }
     }
