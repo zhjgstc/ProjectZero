@@ -1,12 +1,13 @@
 import React from 'react';
 import moment from 'moment';
-import MySqlForm from '../NewConnection/MySql/Form';
 import * as utils from '../../utils/Utils';
-import { Container, Grid, Button } from '@material-ui/core';
+import { Container, Grid, AppBar, Toolbar } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
+import LeftBar from './LeftBar';
+var _ = require('lodash');
+
 
 var conn: any;
-
 interface IState {
     text: string,
     sql: string,
@@ -54,7 +55,6 @@ export default class App extends React.Component<{}, IState> {
             } else {
                 this.setState({ text: this.state.text + "打开数据库" });
             }
-
         });
         console.log(conn);
     }
@@ -66,6 +66,8 @@ export default class App extends React.Component<{}, IState> {
     initData = () => {
         const store = new utils.Store();
         var list = store.get(utils.DBListKey);
+        list = _.orderBy(list, ['id'], ['desc']);
+
         this.setState({ dbList: list });
     }
 
@@ -169,76 +171,57 @@ export default class App extends React.Component<{}, IState> {
 
     render() {
         return (
-            <Container maxWidth="sm">
+            <div>
+                <AppBar style={{ backgroundColor: 'lightgrey', position: "relative" }}>
+                    <Toolbar>
+                        <NewConnButton dialogClose={(value?: boolean) => { if (value) { this.initData() } }}></NewConnButton>
+                    </Toolbar>
+                </AppBar>
+
                 <Grid container spacing={3} style={{ paddingTop: "10px" }}>
+                    <Grid item xs={3}>
+                        <LeftBar source={this.state.dbList}></LeftBar>
+                    </Grid>
+                    <Grid item xs={9}>
+                        <Grid>
+                            <textarea rows={5} value={this.state.sql}
+                                onChange={this.handleTextareaChange.bind(this)}>
+                            </textarea>
+                            <button onClick={() => this.querySql()}>执行sql</button>
+
+                            {
+                                this.state.fields && this.state.fields.length > 0 ? this.renderTables(this.state.fields, this.state.results) :
+                                    this.state.text
+                            }
+
+                        </Grid>
+                    </Grid>
+                    <Grid item xs={6}>
+                        {
+                            this.state.dbList ? this.state.dbList.map((item, index) => {
+                                return (
+                                    <div key={index}>
+                                        <button>{item.name}</button>
+                                        <br />
+                                    </div>
+                                )
+                            }) : null
+                        }
+                    </Grid>
+                    <Grid item xs={6}>
+                        <textarea rows={5} value={this.state.sql}
+                            onChange={this.handleTextareaChange.bind(this)}>
+                        </textarea>
+                        <button onClick={() => this.querySql()}>执行sql</button>
+                    </Grid>
                     <Grid item xs={12}>
-                        <NewConnButton></NewConnButton>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Button color="primary" variant="contained" onClick={() => this.setState({ showNewConnForm: true })}>新建连接</Button>
-                    </Grid>
-                    <Grid item xs={6}>
-
-                    </Grid>
-                    <Grid item xs={3}>
-
-                    </Grid>
-                    <Grid item xs={3}>
-
-                    </Grid>
-                    <Grid item xs={3}>
-
-                    </Grid>
-                    <Grid item xs={3}>
-
+                        {
+                            this.state.fields && this.state.fields.length > 0 ? this.renderTables(this.state.fields, this.state.results) :
+                                this.state.text
+                        }
                     </Grid>
                 </Grid>
-                <div>
-                    {
-                        this.state.showNewConnForm ? <MySqlForm onSubmit={() => { this.initData() }} onCancel={() => this.setState({ showNewConnForm: false })}></MySqlForm> : null
-                    }
-                </div>
-                <br />
-                <table>
-                    <thead></thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <button onDoubleClick={() => this.openConnection()}>打开数据库</button>
-                                {
-                                    this.state.dbList ? this.state.dbList.map((item, index) => {
-                                        return (
-                                            <div key={index}>
-                                                <button>{item.name}</button>
-                                                <br />
-                                            </div>
-                                        )
-                                    }) : null
-                                }
-                            </td>
-                            <td>
-                                <textarea rows={5} value={this.state.sql}
-                                    onChange={this.handleTextareaChange.bind(this)}>
-                                </textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>
-                                <button onClick={() => this.querySql()}>执行sql</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <br />
-                <div>
-                    {
-                        this.state.fields && this.state.fields.length > 0 ? this.renderTables(this.state.fields, this.state.results) :
-                            this.state.text
-                    }
-                </div>
-            </Container>
+            </div>
         );
     }
 }

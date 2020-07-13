@@ -1,11 +1,11 @@
 import React from 'react';
-import { Button, Menu, MenuItem, Dialog, Slide, AppBar, Toolbar, IconButton, Typography, Grid } from '@material-ui/core';
+import { Button, Menu, MenuItem, Dialog, Slide, AppBar, Toolbar, IconButton, Typography } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import { TransitionProps } from '@material-ui/core/transitions';
 import MySqlForm from '../MySql/Form';
 
 interface IProps {
-
+    dialogClose: any
 }
 
 interface IState {
@@ -13,7 +13,8 @@ interface IState {
     show: boolean,
     open: boolean,
     dialogTitle: string,
-    dialogContent?: any
+    dialogContent?: any,
+    DBList?: Array<any>
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -23,21 +24,20 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const DBList = [
-    { key: 0, name: "MySQL", component: <MySqlForm onSubmit={() => { }} onCancel={() => { }}></MySqlForm> },
-    { key: 1, name: "PostgreSQL", component: null },
-    { key: 2, name: "Oracle", component: null },
-    { key: 3, name: "SQLite", component: null },
-    { key: 4, name: "SQL Server", component: null },
-];
-
 export default class NewConnectionButton extends React.Component<IProps, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
             show: false,
             open: false,
-            dialogTitle: ""
+            dialogTitle: "",
+            DBList: [
+                { key: 0, name: "MySQL", component: <MySqlForm onSubmit={(value?: boolean) => { this.handleDialogClose(value) }} onCancel={() => { this.handleDialogClose() }}></MySqlForm> },
+                { key: 1, name: "PostgreSQL", component: null },
+                { key: 2, name: "Oracle", component: null },
+                { key: 3, name: "SQLite", component: null },
+                { key: 4, name: "SQL Server", component: null },
+            ]
         }
     }
 
@@ -57,8 +57,12 @@ export default class NewConnectionButton extends React.Component<IProps, IState>
         this.setState({ show: false, anchorEl: undefined });
     }
 
-    handleDialogClose = () => {
+    handleDialogClose = (value?: boolean) => {
         this.setState({ open: false });
+        if (this.props.dialogClose) {
+            this.props.dialogClose(value);
+        }
+
     }
 
     handleDialogOpen = () => {
@@ -67,7 +71,7 @@ export default class NewConnectionButton extends React.Component<IProps, IState>
 
     render() {
         return (
-            <div>
+            <div style={{ paddingLeft: "10px", paddingRight: "10px" }}>
                 <Button aria-controls="simple-menu" aria-haspopup="true" color="primary" variant="contained" onClick={(event: any) => this.handleClick(event)}>新建连接</Button>
                 <Menu
                     id="simple-menu"
@@ -77,11 +81,11 @@ export default class NewConnectionButton extends React.Component<IProps, IState>
                     onClose={() => this.handleClose(null)}
                 >
                     {
-                        DBList.map((item, index) => {
+                        this.state.DBList ? this.state.DBList.map((item, index) => {
                             return (
                                 <MenuItem key={index} onClick={() => this.handleClose(item)}>{item.name}</MenuItem>
                             )
-                        })
+                        }) : null
                     }
                 </Menu>
                 <Dialog fullScreen open={this.state.open} onClose={() => this.handleDialogClose()} TransitionComponent={Transition}>

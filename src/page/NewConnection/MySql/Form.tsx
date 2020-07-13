@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
+import { Grid, TextField, AppBar, Toolbar, Button } from '@material-ui/core';
 
 var _ = require('lodash');
 var CryptoJS = require("crypto-js");
@@ -58,6 +59,17 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         if (connConfig.pwd) {
             connConfig.pwd = CryptoJS.AES.encrypt(connConfig.pwd, utils.CryptoKey).toString();
         }
+
+        if (!connConfig.host) {
+            connConfig.host = "localhost";
+        }
+        if (!connConfig.port) {
+            connConfig.port = "3306";
+        }
+        if (!connConfig.name) {
+            connConfig.name = connConfig.host + "_" + connConfig.port;
+        }
+
         const store = new utils.Store();
         if (!store.has(utils.DBListKey)) {
             connConfig.id = 0;
@@ -76,7 +88,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         }
 
         if (this.props.onSubmit) {
-            this.props.onSubmit();
+            this.props.onSubmit(true);
         }
     }
 
@@ -105,21 +117,56 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
 
     render() {
         return (
-            <div>
-                连接名：<input type="text" value={this.state.connConfig.name} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.name = e.target.value; this.setState({ connConfig: connConfig }) }} />
+            <Grid
+                container
+                direction="column"
+                justify="center"
+                alignItems="center"
+            >
+                <div style={{ paddingTop: "20px" }}>
+                    <TextField id="standard-basic" label="连接名" value={this.state.connConfig.name} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.name = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                </div>
+
+                <div style={{ paddingTop: "10px" }}>
+                    <TextField id="standard-basic" label="主机" value={this.state.connConfig.host} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.host = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                </div>
+
+                <div style={{ paddingTop: "10px" }}>
+                    <TextField id="standard-basic" label="端口" value={this.state.connConfig.port} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.port = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                </div>
+
+                <div style={{ paddingTop: "10px" }}>
+                    <TextField id="standard-basic" label="用户名" value={this.state.connConfig.user} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.user = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                </div>
+
+                <div style={{ paddingTop: "10px" }}>
+                    <TextField id="standard-basic" label="密码" value={this.state.connConfig.pwd} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                </div>
+
                 <br />
-                主机：<input type="text" value={this.state.connConfig.host} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.host = e.target.value; this.setState({ connConfig: connConfig }) }} />
-                <br />
-                端口：<input type="text" value={this.state.connConfig.port} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.port = e.target.value; this.setState({ connConfig: connConfig }) }} />
-                <br />
-                用户名：<input type="text" value={this.state.connConfig.user} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.user = e.target.value; this.setState({ connConfig: connConfig }) }} />
-                <br />
-                密码：<input type="password" value={this.state.connConfig.pwd} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
-                <br />
-                <button onClick={() => this.onTestConnection_Click()}>测试连接</button>
-                &nbsp;<button onClick={() => this.onSubmit_Click()}>保存</button>
-                &nbsp;<button onClick={() => this.onCancel_Click()}>取消</button>
-            </div>
+                <AppBar style={{
+                    backgroundColor: "transparent",
+                    top: 'auto',
+                    bottom: 0,
+                }}>
+                    <Toolbar>
+                        <Grid
+                            container
+                            direction="row">
+                            <Grid item xs={8}>
+                                <Button color="primary" variant="contained" onClick={() => this.onTestConnection_Click()}>测试连接</Button>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <Button color="primary" variant="contained" onClick={() => this.onSubmit_Click()}>保存</Button>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <Button color="primary" variant="contained" onClick={() => this.onCancel_Click()}>取消</Button>
+                            </Grid>
+                        </Grid>
+                    </Toolbar>
+                </AppBar>
+
+            </Grid>
         )
     }
 }
