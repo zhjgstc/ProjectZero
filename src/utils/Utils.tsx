@@ -17,3 +17,22 @@ export const Store = window.require('electron-store');
  * mysql数据库
  */
 export const MySql = window.require('mysql');
+
+/**
+ * 加密字符串
+ * @param text 字符串
+ */
+export function Encrypt(text: string) {
+    var CryptoJS = require("crypto-js");
+    return CryptoJS.AES.encrypt(text, CryptoKey).toString();
+}
+
+/**
+ * 解密字符串
+ * @param text 字符串
+ */
+export function Decrypt(text: string) {
+    var CryptoJS = require("crypto-js");
+    var bytes = CryptoJS.AES.decrypt(text, CryptoKey);
+    return bytes.toString(CryptoJS.enc.Utf8);
+}

@@ -1,11 +1,13 @@
 import React from 'react';
-import moment from 'moment';
+
 import * as utils from '../../utils/Utils';
 import { Grid, AppBar, Toolbar, Tabs, Tab } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
 import LeftBar from './LeftBar';
 import IConfig from '../../models/MySql';
 import Content from './Content';
+import EditForm from '../EditConnection/MySql/Form';
+
 var _ = require('lodash');
 
 
@@ -24,9 +26,10 @@ interface IState {
     results: Array<any>,
     showNewConnForm: boolean,
     dbList: Array<any>,
-    conntedList?: Array<DBCcnfigItem>,
     selectItem: number
 }
+
+var conntedList: Array<DBCcnfigItem>;
 
 export default class App extends React.Component<{}, IState> {
     constructor(props: any) {
@@ -80,10 +83,13 @@ export default class App extends React.Component<{}, IState> {
         var list = store.get(utils.DBListKey);
         list = _.orderBy(list, ['id'], ['desc']);
         var items = new Array<DBCcnfigItem>();
-        list.forEach((element: IConfig) => {
-            items.push({ item: element, opened: false, component: <Content key={element.id} selectDB={element}></Content> })
+        list.forEach((element: IConfig, index: number) => {
+            console.log(element);
+            console.log(index);
+            items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={() => { this.initData() }} key={index} selectDB={element}></EditForm> })
         });
-        this.setState({ dbList: list, conntedList: items });
+        conntedList = items;
+        this.setState({ dbList: list });
     }
 
     querySql = () => {
@@ -109,85 +115,24 @@ export default class App extends React.Component<{}, IState> {
             this.setState(this.state);
         });
     }
-    renderTable = (col: Array<any>, list: Array<any>) => {
-        try {
-            return (
-                <table>
-                    <thead>
-                        <tr>
-                            {
-                                col.map((item, index) => {
-                                    return (
-                                        <td key={index}>{item["name"]}</td>
-                                    )
-                                })
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            list.map((item, index) => {
-                                return (
-                                    <tr key={index}>
-                                        {
-                                            col.map((colItem, colIndex) => {
-                                                var value = "";
-                                                if (colItem["type"] === 12) {
-                                                    value = moment(item[colItem]).format("yyyy-MM-DD HH:mm:ss");
-                                                } else {
-                                                    value = item[colItem.name];
-                                                }
-                                                return (
-                                                    <td key={colIndex}>{value}</td>
-                                                )
-                                            })
-                                        }
-                                    </tr>
-                                )
-                            })
-                        }
-                    </tbody>
-                </table>
-            )
-        } catch{
-            this.setState({
-                fields: new Array<string>(),
-                results: new Array<any>()
-            })
-            return null;
-        }
-
-    }
-
-    renderTables = (col: Array<any>, list: Array<any>) => {
-        var tables = [];
-        if (col.length === 1) {
-            if (col) {
-                tables.push(this.renderTable(col, list));
-            } else {
-                this.setState({ text: "执行成功" });
-            }
-        } else {
-            for (let index = 0; index < col.length; index++) {
-                tables.push(
-                    <div key={index}>
-                        <p>结果{index + 1}</p>
-                        {
-                            col[index] ?
-                                this.renderTable(col[index], list[index]) :
-                                "执行成功，影响行数：" + list[index].affectedRows
-                        }
-                    </div>
-                );
-            }
-        }
-        return tables;
-    }
-
 
     handleLeftBarOnClick = (item: IConfig) => {
         console.log(item);
         this.setState({ selectItem: item.id });
+    }
+
+    renderContent = () => {
+        if (this.state.selectItem < 0) {
+            return null;
+        }
+        if (conntedList) {
+            for (let index = 0; index < conntedList.length; index++) {
+                const element = conntedList[index];
+                if (this.state.selectItem == element.item.id) {
+                    return element.component;
+                }
+            }
+        }
     }
 
     render() {
@@ -201,16 +146,24 @@ export default class App extends React.Component<{}, IState> {
 
                 <Grid container spacing={3} style={{ paddingTop: "10px" }}>
                     <Grid item xs={3}>
-                        <LeftBar source={this.state.dbList} onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}></LeftBar>
+                        {
+                            this.state.dbList.length > 0 ?
+                                <LeftBar source={this.state.dbList} onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}></LeftBar>
+                                : null
+                        }
+
                     </Grid>
                     <Grid item xs={9}>
                         {
+                            this.renderContent()
+                        }
+                        {/* {
                             this.state.conntedList && this.state.selectItem > 0 ? this.state.conntedList.map((item, index) => {
                                 if (item.item.id == this.state.selectItem) {
                                     return item.component;
                                 }
                             }) : null
-                        }
+                        } */}
 
                         {/* <textarea rows={5} value={this.state.sql}
                             onChange={this.handleTextareaChange.bind(this)}>

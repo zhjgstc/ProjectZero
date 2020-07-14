@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
 import IConfig from '../../../models/MySql';
-import { Grid, TextField, AppBar, Toolbar, Button } from '@material-ui/core';
+import { Grid, TextField, AppBar, Toolbar, Button, FormControlLabel, Checkbox } from '@material-ui/core';
 
 var _ = require('lodash');
 var CryptoJS = require("crypto-js");
@@ -30,6 +30,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
                 port: '3306',
                 user: '',
                 pwd: '',
+                remember: true,
                 createDate: ''
             }
         }
@@ -46,8 +47,22 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
     onSubmit_Click = () => {
         var connConfig = this.state.connConfig;
         connConfig.createDate = moment(new Date()).format("yyyy-MM-DD hh:mm:ss");
-        if (connConfig.pwd) {
+
+        if (connConfig.remember) {
+            if (!connConfig.user) {
+                alert("请填写用户名");
+                return;
+            }
+            if (!connConfig.pwd) {
+                alert("请填写密码");
+                return;
+            }
+        }
+
+        if (connConfig.remember && connConfig.pwd) {
             connConfig.pwd = CryptoJS.AES.encrypt(connConfig.pwd, utils.CryptoKey).toString();
+        } else {
+            connConfig.pwd = "";
         }
 
         if (!connConfig.host) {
@@ -59,6 +74,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         if (!connConfig.name) {
             connConfig.name = connConfig.host + "_" + connConfig.port;
         }
+
 
         const store = new utils.Store();
         if (!store.has(utils.DBListKey)) {
@@ -105,6 +121,12 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         });
     }
 
+    handleChange = (event: any) => {
+        var config = this.state.connConfig;
+        config.remember = event.target.checked;
+        this.setState({ connConfig: config });
+    }
+
     render() {
         return (
             <Grid
@@ -130,9 +152,11 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
                 </div>
 
                 <div style={{ paddingTop: "10px" }}>
-                    <TextField id="standard-basic" label="密码" value={this.state.connConfig.pwd} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
+                    <TextField id="standard-basic" label="密码" type="password" value={this.state.connConfig.pwd} onChange={(e) => { var connConfig = this.state.connConfig; connConfig.pwd = e.target.value; this.setState({ connConfig: connConfig }) }} />
                 </div>
-
+                <div style={{ paddingTop: "10px" }}>
+                    <input type="CheckBox" checked={this.state.connConfig.remember} onChange={(event: any) => this.handleChange(event)} />保存密码
+                </div>
                 <br />
                 <AppBar style={{
                     backgroundColor: "transparent",

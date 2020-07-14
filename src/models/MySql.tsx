@@ -5,5 +5,6 @@ export default interface IConfig {
     port: string,
     user: string,
     pwd: string,
+    remember: boolean,
     createDate: string
 }

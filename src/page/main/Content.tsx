@@ -3,32 +3,31 @@ import IConfig from '../../models/MySql';
 import EditForm from '../EditConnection/MySql/Form';
 
 interface IProps {
-    selectDB: IConfig
+    selectDB: IConfig,
+    onRefresh: any
 }
 
 interface IState {
-    connConfig: IConfig
+    connected: boolean
 }
 
 export default class Content extends React.Component<IProps, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            connConfig: this.props.selectDB ? this.props.selectDB : {
-                id: -1,
-                name: '',
-                host: '',
-                port: '3306',
-                user: '',
-                pwd: '',
-                createDate: ''
-            }
+            connected: false
         }
     }
     render() {
         return (
             <div>
-                <EditForm selectDB={this.state.connConfig} onConnection={() => { }}></EditForm>
+                {
+                    this.state.connected ?
+                        null
+                        :
+                        null
+                }
+
             </div>
         )
     }
