@@ -4,39 +4,98 @@ import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import StorageIcon from '@material-ui/icons/Storage';
 import IConfig from '../../models/MySql';
 import Icon from '@material-ui/core/Icon';
 import * as DBHelper from '../../component/db-helper/MySql';
-var _ = require('lodash');
+import * as Utils from '../../utils/Utils';
+import Confirm from '../../component/confirm/confirm';
+
+
 
 interface IProps {
     source: Array<IConfig>,
-    onClick?: any
+    onClick?: any,
+    onRefresh: any
+}
+
+interface database {
+    name: string,
+    open: boolean,
 }
 
 interface openItem {
     item: IConfig,
     open: boolean,
-    databases: Array<string>,
+    databases: Array<database>,
     conn?: any
 }
 
 interface IState {
-    list: Array<openItem>
+    list: Array<openItem>,
+    rightClickItem?: openItem,
+    showDialog: boolean
 }
 
 export default class LeftBar extends React.Component<IProps, IState>{
     constructor(props: any) {
         super(props);
         this.state = {
-            list: new Array<openItem>()
+            list: new Array<openItem>(),
+            showDialog: false,
         }
     }
 
     componentDidMount() {
         this.initData();
+    }
+
+    contextMenu = (e: any, item: openItem) => {
+        const { remote } = window.require('electron');
+        const { Menu, MenuItem } = remote;
+
+        //右键餐单
+        const menu = new Menu();
+        menu.append(new MenuItem({
+            label: '打开连接',
+            click: () => {
+                this.openConnectionClick(item);
+            }
+        }));
+        menu.append(new MenuItem({
+            label: '关闭连接',
+            click: () => {
+                this.closeConnClick(item);
+            }
+        }));
+        menu.append(new MenuItem({ type: 'separator' }));//分割线
+        menu.append(new MenuItem({
+            label: '编辑连接',
+            click: () => {
+                this.showEditForm(item.item);
+            }
+        }));
+        menu.append(new MenuItem({
+            label: '删除连接',
+            click: () => {
+                this.setState({ rightClickItem: item, showDialog: true });
+            }
+        }));
+        menu.append(new MenuItem({ type: 'separator' }));//分割线
+        menu.append(new MenuItem({
+            label: '新建数据库',
+            click: function () {
+                console.log('item 1 clicked')
+            }
+        }));
+        menu.append(new MenuItem({
+            label: '新建查询',
+            click: function () {
+                console.log('item 1 clicked')
+            }
+        }));
+
+        e.preventDefault();
+        menu.popup(remote.getCurrentWindow(), e.clientX, e.clientY);
     }
 
     initData = () => {
@@ -47,29 +106,23 @@ export default class LeftBar extends React.Component<IProps, IState>{
                 this.state.list.push({
                     item: element,
                     open: false,
-                    databases: new Array<string>()
+                    databases: new Array<database>()
                 });
             }
             this.setState({ list: this.state.list });
         }
     }
 
-    handleOnClick = (item: IConfig) => {
+    showEditForm = (item: IConfig) => {
         if (this.props.onClick) {
             this.props.onClick(item);
         }
     }
 
     openConnectionClick = (item: openItem) => {
-        var index = _.findIndex(this.state.list, { item: item.item });
+        var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
         var model = this.state.list[index];
         if (model.open) {
-            model.open = false;
-            model.conn.end();
-            model.conn = null;
-            model.databases = new Array<string>();
-            this.state.list[index] = model;
-            this.setState({ list: this.state.list });
             return;
         }
         DBHelper.openConnection(item.item, (flag: boolean, conn: any) => {
@@ -80,7 +133,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
                     if (!error) {
                         for (let i = 0; i < results.length; i++) {
                             const element = results[i];
-                            this.state.list[index].databases.push(element.Database);
+                            this.state.list[index].databases.push({ name: element.Database, open: false });
                         }
                         this.state.list[index].open = true;
                         this.setState({ list: this.state.list });
@@ -94,6 +147,38 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
     }
 
+    closeConnClick = (item: openItem) => {
+        var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
+        var model = this.state.list[index];
+        if (!model.open) {
+            return;
+        }
+        if (model.open) {
+            model.open = false;
+            model.conn.end();
+            model.conn = null;
+            model.databases = new Array<database>();
+            this.state.list[index] = model;
+            this.setState({ list: this.state.list });
+        }
+    }
+
+    /**
+     * 删除连接弹出提示框的连接
+     */
+    onConfirmSubmit = (id: number) => {
+        this.setState({ showDialog: false });
+        const store = new Utils.Store();
+        var list = store.get(Utils.DBListKey);
+        if (list) {
+            list.splice(list.findIndex((item: IConfig) => item.id === id), 1)
+            console.log(list);
+            store.set(Utils.DBListKey, list);
+            this.props.onRefresh();
+        }
+    }
+
+
     renderDataBase = (item: openItem) => {
         var items = [];
         for (let index = 0; index < item.databases.length; index++) {
@@ -101,9 +186,9 @@ export default class LeftBar extends React.Component<IProps, IState>{
             items.push(
                 <ListItem key={index} button style={{ paddingLeft: "30px" }}>
                     <ListItemIcon>
-                        <Icon className="fa fa-database" style={{ color: item.open ? "green" : "black" }} />
+                        <Icon className="fa fa-database" style={{ color: element.open ? "green" : "black" }} />
                     </ListItemIcon>
-                    <ListItemText primary={element} />
+                    <ListItemText primary={element.name} />
                 </ListItem>
             );
         }
@@ -119,7 +204,9 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
                             return (
                                 <div key={index}>
-                                    <ListItem button key={index} onDoubleClick={() => this.openConnectionClick(item)} onClick={() => this.handleOnClick(item.item)}>
+                                    <ListItem button key={index}
+                                        onDoubleClick={() => this.openConnectionClick(item)}
+                                        onContextMenu={(e) => this.contextMenu(e, item)}>
                                         <ListItemIcon>
                                             <Icon className="fa fa-server" style={{ color: item.open ? "green" : "black" }} />
                                         </ListItemIcon>
@@ -138,6 +225,16 @@ export default class LeftBar extends React.Component<IProps, IState>{
                         }) : null
                     }
                 </List>
+                {
+                    this.state.rightClickItem && this.state.rightClickItem.item ? <Confirm
+                        title="注意！"
+                        text={"请确认是否要删除" + this.state.rightClickItem.item.name}
+                        open={this.state.showDialog}
+                        onClose={() => { this.setState({ showDialog: false }) }}
+                        onSubmit={() => this.onConfirmSubmit(this.state.rightClickItem.item.id)}
+                    ></Confirm> : null
+                }
+
             </div>
         )
     }

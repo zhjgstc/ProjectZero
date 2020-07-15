@@ -19,6 +19,11 @@ export const Store = window.require('electron-store');
 export const MySql = window.require('mysql');
 
 /**
+ * Loadsh库
+ */
+export const Loadsh = require('lodash');
+
+/**
  * 加密字符串
  * @param text 字符串
  */

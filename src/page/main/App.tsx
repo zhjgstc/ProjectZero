@@ -8,9 +8,6 @@ import IConfig from '../../models/MySql';
 import Content from './Content';
 import EditForm from '../EditConnection/MySql/Form';
 
-var _ = require('lodash');
-
-
 var conn: any;
 
 interface DBCcnfigItem {
@@ -54,67 +51,71 @@ export default class App extends React.Component<{}, IState> {
             sql: e.target.value
         })
     }
-    openConnection = () => {
-        conn = utils.MySql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: 'root',
-            port: '33061',
-            multipleStatements: true
-        })
 
-        conn.connect((error: any) => {
-            console.log(error);
-            if (error) {
-                this.setState({ text: this.state.text + "无法连接数据库" });
-            } else {
-                this.setState({ text: this.state.text + "打开数据库" });
-            }
-        });
-        console.log(conn);
-    }
+    // openConnection = () => {
+    //     conn = utils.MySql.createConnection({
+    //         host: 'localhost',
+    //         user: 'root',
+    //         password: 'root',
+    //         port: '33061',
+    //         multipleStatements: true
+    //     })
+
+    //     conn.connect((error: any) => {
+    //         console.log(error);
+    //         if (error) {
+    //             this.setState({ text: this.state.text + "无法连接数据库" });
+    //         } else {
+    //             this.setState({ text: this.state.text + "打开数据库" });
+    //         }
+    //     });
+    //     console.log(conn);
+    // }
+
     componentDidCatch(error: any, info: any) {
         console.log(error);
         console.log(info);
         this.setState({ text: "无法连接数据库" });
     }
     initData = () => {
-        const store = new utils.Store();
-        var list = store.get(utils.DBListKey);
-        list = _.orderBy(list, ['id'], ['desc']);
-        var items = new Array<DBCcnfigItem>();
-        list.forEach((element: IConfig, index: number) => {
-            console.log(element);
-            console.log(index);
-            items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={() => { this.initData() }} key={index} selectDB={element}></EditForm> })
-        });
-        conntedList = items;
-        this.setState({ dbList: list });
-    }
-
-    querySql = () => {
-        this.setState({
-            fields: new Array<string>(),
-            text: ""
-        });
-
-        conn.query(this.state.sql, (error: any, results: any, fields: any) => {
-            if (error) {
-                console.log(error);
-                this.setState({
-                    text: error.message
-                });
-            } else {
-                console.log(results);
-                console.log(fields);
-                this.setState({
-                    fields: fields,
-                    results: results
-                });
-            }
-            this.setState(this.state);
+        this.setState({ dbList: new Array<any>() }, () => {
+            const store = new utils.Store();
+            var list = store.get(utils.DBListKey);
+            list = utils.Loadsh.orderBy(list, ['id'], ['desc']);
+            var items = new Array<DBCcnfigItem>();
+            list.forEach((element: IConfig, index: number) => {
+                console.log(element);
+                console.log(index);
+                items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={() => { this.initData() }} key={index} selectDB={element}></EditForm> })
+            });
+            conntedList = items;
+            this.setState({ dbList: list });
         });
     }
+
+    // querySql = () => {
+    //     this.setState({
+    //         fields: new Array<string>(),
+    //         text: ""
+    //     });
+
+    //     conn.query(this.state.sql, (error: any, results: any, fields: any) => {
+    //         if (error) {
+    //             console.log(error);
+    //             this.setState({
+    //                 text: error.message
+    //             });
+    //         } else {
+    //             console.log(results);
+    //             console.log(fields);
+    //             this.setState({
+    //                 fields: fields,
+    //                 results: results
+    //             });
+    //         }
+    //         this.setState(this.state);
+    //     });
+    // }
 
     handleLeftBarOnClick = (item: IConfig) => {
         console.log(item);
@@ -148,10 +149,13 @@ export default class App extends React.Component<{}, IState> {
                     <Grid item xs={3}>
                         {
                             this.state.dbList.length > 0 ?
-                                <LeftBar source={this.state.dbList} onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}></LeftBar>
+                                <LeftBar
+                                    source={this.state.dbList}
+                                    onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}
+                                    onRefresh={() => { this.initData() }}
+                                ></LeftBar>
                                 : null
                         }
-
                     </Grid>
                     <Grid item xs={9}>
                         {
