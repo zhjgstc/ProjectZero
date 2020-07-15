@@ -1,12 +1,12 @@
 import * as utils from '../../utils/Utils';
-import IConfig from '../../models/MySql';
+import * as MySqlModels from '../../models/MySql';
 
 /**
  * 连接数据库
  * @param hostConfig 数据库服务器连接配置信息
  * @param callBack 成功或失败后的回调函数
  */
-export function openConnection(hostConfig: IConfig, callBack: any) {
+export function openConnection(hostConfig: MySqlModels.IConfig, callBack: any) {
     var conn = utils.MySql.createConnection({
         host: hostConfig.host,
         user: hostConfig.user,

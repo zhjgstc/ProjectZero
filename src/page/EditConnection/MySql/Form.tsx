@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
-import IConfig from '../../../models/MySql';
+import * as MySqlModels from '../../../models/MySql';
 import { Grid, TextField, AppBar, Toolbar, Button, Switch, Checkbox } from '@material-ui/core';
 import Confirm from '../../../component/confirm/confirm';
 
@@ -11,13 +11,13 @@ var CryptoJS = require("crypto-js");
 
 interface IProps {
     onConnection: any,
-    selectDB: IConfig,
+    selectDB: MySqlModels.IConfig,
     onRefresh: any
 }
 
 interface IState {
     showDialog: boolean,
-    dbConfig: IConfig
+    dbConfig: MySqlModels.IConfig
 }
 
 export default class MySqlFrom extends React.Component<IProps, IState> {
@@ -39,7 +39,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
     }
 
     componentDidMount() {
-        var config: IConfig = {
+        var config: MySqlModels.IConfig = {
             id: this.props.selectDB.id,
             name: this.props.selectDB.name,
             host: this.props.selectDB.host,
@@ -99,7 +99,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         const store = new utils.Store();
         var list = store.get(utils.DBListKey);
         if (list) {
-            list.splice(list.findIndex((item: IConfig) => item.id === this.props.selectDB.id), 1)
+            list.splice(list.findIndex((item: MySqlModels.IConfig) => item.id === this.props.selectDB.id), 1)
             console.log(list);
             store.set(utils.DBListKey, list);
             this.props.onRefresh();

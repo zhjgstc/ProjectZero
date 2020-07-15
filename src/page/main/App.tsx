@@ -4,14 +4,14 @@ import * as utils from '../../utils/Utils';
 import { Grid, AppBar, Toolbar, Tabs, Tab } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
 import LeftBar from './LeftBar';
-import IConfig from '../../models/MySql';
+import * as MySqlModels from '../../models/MySql';
 import Content from './Content';
 import EditForm from '../EditConnection/MySql/Form';
 
 var conn: any;
 
 interface DBCcnfigItem {
-    item: IConfig,
+    item: MySqlModels.IConfig,
     opened: boolean,
     component: any
 }
@@ -23,7 +23,11 @@ interface IState {
     results: Array<any>,
     showNewConnForm: boolean,
     dbList: Array<any>,
-    selectItem: number
+    selectItem?: {
+        host: MySqlModels.IHostItem,
+        database: MySqlModels.IDatabase,
+        action: string
+    }
 }
 
 var conntedList: Array<DBCcnfigItem>;
@@ -37,8 +41,7 @@ export default class App extends React.Component<{}, IState> {
             fields: new Array<any>(),
             results: new Array<any>(),
             showNewConnForm: false,
-            dbList: new Array<any>(),
-            selectItem: -1
+            dbList: new Array<any>()
         }
     }
     componentDidMount() {
@@ -83,7 +86,7 @@ export default class App extends React.Component<{}, IState> {
             var list = store.get(utils.DBListKey);
             list = utils.Loadsh.orderBy(list, ['id'], ['desc']);
             var items = new Array<DBCcnfigItem>();
-            list.forEach((element: IConfig, index: number) => {
+            list.forEach((element: MySqlModels.IConfig, index: number) => {
                 console.log(element);
                 console.log(index);
                 items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={() => { this.initData() }} key={index} selectDB={element}></EditForm> })
@@ -117,23 +120,61 @@ export default class App extends React.Component<{}, IState> {
     //     });
     // }
 
-    handleLeftBarOnClick = (item: IConfig) => {
-        console.log(item);
-        this.setState({ selectItem: item.id });
+    /**
+     * 主要是获取当前选择的数据项
+     * @param item 传递回来的当前选择项
+     */
+    handleLeftBarOnClick = (item: MySqlModels.IConfig) => {
+        //console.log(item);
+        //this.setState({ selectItem: item.id });
+
+    }
+
+    /**
+     * 当前选择的数据库
+     * @param model 主机信息
+     * @param database 数据库信息
+     * @param action 当前的动作（表，视图，函数，事件这类的
+     */
+    handleLeftBarOnSelected = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => {
+        // this.setState({
+        //     selectItem: undefined
+        // }, () => {
+        //     this.setState({
+        //         selectItem: {
+        //             host: host,
+        //             database: database,
+        //             action: action
+        //         }
+        //     });  
+        // });
+
+        this.setState({
+            selectItem: {
+                host: host,
+                database: database,
+                action: action
+            }
+        });
     }
 
     renderContent = () => {
-        if (this.state.selectItem < 0) {
-            return null;
+        if (this.state.selectItem) {
+            return (
+                <Content onRefresh={() => { }} item={this.state.selectItem}></Content>
+            )
         }
-        if (conntedList) {
-            for (let index = 0; index < conntedList.length; index++) {
-                const element = conntedList[index];
-                if (this.state.selectItem == element.item.id) {
-                    return element.component;
-                }
-            }
-        }
+        // if (this.state.selectItem < 0) {
+        //     return null;
+        // }
+        // if (conntedList) {
+        //     for (let index = 0; index < conntedList.length; index++) {
+        //         const element = conntedList[index];
+        //         if (this.state.selectItem == element.item.id) {
+        //             return element.component;
+        //         }
+        //     }
+        // }
     }
 
     render() {
@@ -151,7 +192,8 @@ export default class App extends React.Component<{}, IState> {
                             this.state.dbList.length > 0 ?
                                 <LeftBar
                                     source={this.state.dbList}
-                                    onClick={(item: IConfig) => this.handleLeftBarOnClick(item)}
+                                    onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => this.handleLeftBarOnSelected(model, database, action)}
+                                    onClick={(item: MySqlModels.IConfig) => this.handleLeftBarOnClick(item)}
                                     onRefresh={() => { this.initData() }}
                                 ></LeftBar>
                                 : null

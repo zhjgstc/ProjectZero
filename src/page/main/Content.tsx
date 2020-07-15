@@ -1,9 +1,13 @@
 import React from 'react';
-import IConfig from '../../models/MySql';
+import * as MySqlModels from '../../models/MySql';
 import EditForm from '../EditConnection/MySql/Form';
 
 interface IProps {
-    selectDB: IConfig,
+    item: {
+        host: MySqlModels.IHostItem,
+        database: MySqlModels.IDatabase,
+        action: string
+    },
     onRefresh: any
 }
 
@@ -21,13 +25,7 @@ export default class Content extends React.Component<IProps, IState> {
     render() {
         return (
             <div>
-                {
-                    this.state.connected ?
-                        null
-                        :
-                        null
-                }
-
+                {this.props.item.action}
             </div>
         )
     }

@@ -1,4 +1,4 @@
-export default interface IConfig {
+export interface IConfig {
     id: number,
     name: string,
     host: string,
@@ -7,4 +7,17 @@ export default interface IConfig {
     pwd: string,
     remember: boolean,
     createDate: string
+}
+
+export interface IDatabase {
+    name: string,
+    open: boolean,
+    selected: boolean
+}
+
+export interface IHostItem {
+    item: IConfig,
+    open: boolean,
+    databases: Array<IDatabase>,
+    conn?: any
 }

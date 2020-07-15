@@ -4,7 +4,7 @@ import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
-import IConfig from '../../models/MySql';
+import * as MySqlModels from '../../models/MySql';
 import Icon from '@material-ui/core/Icon';
 import * as DBHelper from '../../component/db-helper/MySql';
 import * as Utils from '../../utils/Utils';
@@ -13,26 +13,15 @@ import Confirm from '../../component/confirm/confirm';
 
 
 interface IProps {
-    source: Array<IConfig>,
+    source: Array<MySqlModels.IConfig>,
     onClick?: any,
-    onRefresh: any
-}
-
-interface database {
-    name: string,
-    open: boolean,
-}
-
-interface openItem {
-    item: IConfig,
-    open: boolean,
-    databases: Array<database>,
-    conn?: any
+    onRefresh: any,
+    onSelectDataBase: any
 }
 
 interface IState {
-    list: Array<openItem>,
-    rightClickItem?: openItem,
+    list: Array<MySqlModels.IHostItem>,
+    rightClickItem?: MySqlModels.IHostItem,
     showDialog: boolean
 }
 
@@ -40,7 +29,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
     constructor(props: any) {
         super(props);
         this.state = {
-            list: new Array<openItem>(),
+            list: new Array<MySqlModels.IHostItem>(),
             showDialog: false,
         }
     }
@@ -49,7 +38,12 @@ export default class LeftBar extends React.Component<IProps, IState>{
         this.initData();
     }
 
-    contextMenu = (e: any, item: openItem) => {
+    /**
+     * server右击事件
+     * @param e 当前右击的元素
+     * @param item 元素对应的数据
+     */
+    contextMenu = (e: any, item: MySqlModels.IHostItem) => {
         const { remote } = window.require('electron');
         const { Menu, MenuItem } = remote;
 
@@ -106,20 +100,20 @@ export default class LeftBar extends React.Component<IProps, IState>{
                 this.state.list.push({
                     item: element,
                     open: false,
-                    databases: new Array<database>()
+                    databases: new Array<MySqlModels.IDatabase>()
                 });
             }
             this.setState({ list: this.state.list });
         }
     }
 
-    showEditForm = (item: IConfig) => {
+    showEditForm = (item: MySqlModels.IConfig) => {
         if (this.props.onClick) {
             this.props.onClick(item);
         }
     }
 
-    openConnectionClick = (item: openItem) => {
+    openConnectionClick = (item: MySqlModels.IHostItem) => {
         var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
         var model = this.state.list[index];
         if (model.open) {
@@ -133,7 +127,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
                     if (!error) {
                         for (let i = 0; i < results.length; i++) {
                             const element = results[i];
-                            this.state.list[index].databases.push({ name: element.Database, open: false });
+                            this.state.list[index].databases.push({ name: element.Database, open: false, selected: false });
                         }
                         this.state.list[index].open = true;
                         this.setState({ list: this.state.list });
@@ -147,7 +141,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
     }
 
-    closeConnClick = (item: openItem) => {
+    closeConnClick = (item: MySqlModels.IHostItem) => {
         var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
         var model = this.state.list[index];
         if (!model.open) {
@@ -157,7 +151,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
             model.open = false;
             model.conn.end();
             model.conn = null;
-            model.databases = new Array<database>();
+            model.databases = new Array<MySqlModels.IDatabase>();
             this.state.list[index] = model;
             this.setState({ list: this.state.list });
         }
@@ -171,28 +165,90 @@ export default class LeftBar extends React.Component<IProps, IState>{
         const store = new Utils.Store();
         var list = store.get(Utils.DBListKey);
         if (list) {
-            list.splice(list.findIndex((item: IConfig) => item.id === id), 1)
+            list.splice(list.findIndex((item: MySqlModels.IConfig) => item.id === id), 1)
             console.log(list);
             store.set(Utils.DBListKey, list);
             this.props.onRefresh();
         }
     }
 
+    useDataBaseOnDoubleClick = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) => {
+        var index = Utils.Loadsh.findIndex(this.state.list, { item: host.item });
+        var model = this.state.list[index];
+        var dataBaseIndex = Utils.Loadsh.findIndex(model.databases, { name: database.name });
+        if (!model.databases[dataBaseIndex].open) {
+            model.databases[dataBaseIndex].open = true;
+            this.state.list[index] = model;
+            this.setState({ list: this.state.list });
+            this.props.onSelectDataBase(model, database, "表");
+        }
+    }
 
-    renderDataBase = (item: openItem) => {
+    renderDataBase = (item: MySqlModels.IHostItem) => {
         var items = [];
         for (let index = 0; index < item.databases.length; index++) {
             const element = item.databases[index];
             items.push(
-                <ListItem key={index} button style={{ paddingLeft: "30px" }}>
-                    <ListItemIcon>
-                        <Icon className="fa fa-database" style={{ color: element.open ? "green" : "black" }} />
-                    </ListItemIcon>
-                    <ListItemText primary={element.name} />
-                </ListItem>
+                <div key={index}>
+                    <ListItem
+                        button
+                        style={{ paddingLeft: "30px" }}
+                        onDoubleClick={() => this.useDataBaseOnDoubleClick(item, element)}
+                    >
+                        <ListItemIcon>
+                            <Icon className="fa fa-database" style={{ color: element.open ? "green" : "black" }} />
+                        </ListItemIcon>
+                        <ListItemText primary={element.name} />
+                    </ListItem>
+                    <Collapse in={element.open} timeout="auto" unmountOnExit>
+                        {this.renderDataBaseChild(item, element)}
+                    </Collapse>
+                </div >
             );
         }
         return (items);
+    }
+
+    renderDataBaseChild = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) => {
+        return (
+            <List component="div" disablePadding>
+                <ListItem button
+                    style={{ paddingLeft: "60px" }}
+                    onClick={(e) => { this.props.onSelectDataBase(host, database, "表"); }}>
+                    <ListItemIcon>
+                        <Icon className="fa fa-table" style={{ color: "#3C85BE" }} />
+                    </ListItemIcon>
+                    <ListItemText primary="表" />
+                </ListItem>
+                <ListItem button
+                    style={{ paddingLeft: "60px" }}
+
+                    onClick={(e) => { this.props.onSelectDataBase(host, database, "视图"); }}>
+                    <ListItemIcon>
+                        <Icon className="fa fa-table" style={{ color: "#3C85BE" }} />
+                    </ListItemIcon>
+                    <ListItemText primary="视图" />
+                </ListItem>
+                <ListItem button
+                    style={{ paddingLeft: "60px" }}
+
+                    onClick={(e) => { this.props.onSelectDataBase(host, database, "函数"); }}>
+                    <ListItemIcon>
+                        <Icon className="fa fa-chain" style={{ color: "#3C85BE" }} />
+                    </ListItemIcon>
+                    <ListItemText primary="函数" />
+                </ListItem>
+                <ListItem button
+                    style={{ paddingLeft: "60px" }}
+
+                    onClick={(e) => { this.props.onSelectDataBase(host, database, "事件"); }}>
+                    <ListItemIcon>
+                        <Icon className="fa fa-clock-o" style={{ color: "#3C85BE" }} />
+                    </ListItemIcon>
+                    <ListItemText primary="事件" />
+                </ListItem>
+            </List>
+        )
     }
 
     render() {
@@ -200,7 +256,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
             <div style={{ borderRightWidth: "1px", borderRightColor: "#D4D4D4" }}>
                 <List>
                     {
-                        this.state.list ? this.state.list.map((item: openItem, index) => {
+                        this.state.list ? this.state.list.map((item: MySqlModels.IHostItem, index) => {
 
                             return (
                                 <div key={index}>

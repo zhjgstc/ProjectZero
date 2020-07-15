@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
-import IConfig from '../../../models/MySql';
+import * as MySqlModels from '../../../models/MySql';
 import { Grid, TextField, AppBar, Toolbar, Button, FormControlLabel, Checkbox } from '@material-ui/core';
 
 var _ = require('lodash');
@@ -9,7 +9,7 @@ var CryptoJS = require("crypto-js");
 const mysql = window.require('mysql');
 
 interface IState {
-    connConfig: IConfig,
+    connConfig: MySqlModels.IConfig,
 }
 
 interface IProps {
