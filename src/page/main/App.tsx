@@ -81,6 +81,7 @@ export default class App extends React.Component<{}, IState> {
         this.setState({ text: "无法连接数据库" });
     }
     initData = () => {
+        //这里需要修改为push只是新增就好。
         this.setState({ dbList: new Array<any>() }, () => {
             const store = new utils.Store();
             var list = store.get(utils.DBListKey);

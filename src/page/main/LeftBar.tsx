@@ -127,7 +127,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
                     if (!error) {
                         for (let i = 0; i < results.length; i++) {
                             const element = results[i];
-                            this.state.list[index].databases.push({ name: element.Database, open: false, selected: false });
+                            this.state.list[index].databases.push({ name: element.Database, open: false, selected: false, tables: new Array<MySqlModels.ITableInfo>() });
                         }
                         this.state.list[index].open = true;
                         this.setState({ list: this.state.list });
