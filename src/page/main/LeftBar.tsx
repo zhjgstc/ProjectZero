@@ -14,7 +14,6 @@ import Confirm from '../../component/confirm/confirm';
 
 interface IProps {
     source: Array<MySqlModels.IConfig>,
-    onClick?: any,
     onRefresh: { (item: MySqlModels.IConfig, action: string) },
     onSelectDataBase: any,
     changeItem?: MySqlModels.IConfig,
@@ -40,8 +39,6 @@ export default class LeftBar extends React.Component<IProps, IState>{
         this.bindDataSource(this.props.source);
     }
     componentWillReceiveProps(nextProps: IProps) {
-        console.log("props改变了");
-        console.log(nextProps);
         if (nextProps.changeItem && nextProps.changeAction) {
             var action = nextProps.changeAction;
             var changeItem = nextProps.changeItem;
@@ -145,9 +142,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
     }
 
     showEditForm = (item: MySqlModels.IConfig) => {
-        if (this.props.onClick) {
-            this.props.onClick(item);
-        }
+
     }
 
     openConnectionClick = (item: MySqlModels.IHostItem) => {

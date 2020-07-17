@@ -62,6 +62,17 @@ export default class TableList extends React.Component<IProps, IState> {
         this.initData();
     }
 
+    componentWillReceiveProps(nextProps: IProps) {
+        if (this.state.item != nextProps.item) {
+            this.setState({
+                order: 'asc',
+                orderBy: 'TABLE_NAME',
+                item: nextProps.item
+            }, () => { this.initData() });
+
+        }
+    }
+
     initData = () => {
         this.setState({ selectRow: undefined });
         var sql = "select * from information_schema.`TABLES` where TABLE_SCHEMA = '" + this.props.item.database.name + "' ";

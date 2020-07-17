@@ -1,7 +1,6 @@
 import React from 'react';
-
 import * as utils from '../../utils/Utils';
-import { Grid, AppBar, Toolbar, Tabs, Tab } from '@material-ui/core';
+import { Grid, AppBar, Toolbar } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
 import LeftBar from './LeftBar';
 import * as MySqlModels from '../../models/MySql';
@@ -57,26 +56,6 @@ export default class App extends React.Component<{}, IState> {
         })
     }
 
-    // openConnection = () => {
-    //     conn = utils.MySql.createConnection({
-    //         host: 'localhost',
-    //         user: 'root',
-    //         password: 'root',
-    //         port: '33061',
-    //         multipleStatements: true
-    //     })
-
-    //     conn.connect((error: any) => {
-    //         console.log(error);
-    //         if (error) {
-    //             this.setState({ text: this.state.text + "无法连接数据库" });
-    //         } else {
-    //             this.setState({ text: this.state.text + "打开数据库" });
-    //         }
-    //     });
-    //     console.log(conn);
-    // }
-
     componentDidCatch(error: any, info: any) {
         console.log(error);
         console.log(info);
@@ -106,16 +85,6 @@ export default class App extends React.Component<{}, IState> {
 
 
     /**
-     * 主要是获取当前选择的数据项
-     * @param item 传递回来的当前选择项
-     */
-    handleLeftBarOnClick = (item: MySqlModels.IConfig) => {
-        //console.log(item);
-        //this.setState({ selectItem: item.id });
-
-    }
-
-    /**
      * 当前选择的数据库
      * @param model 主机信息
      * @param database 数据库信息
@@ -137,17 +106,6 @@ export default class App extends React.Component<{}, IState> {
                 <Content onRefresh={() => { }} item={this.state.selectItem}></Content>
             )
         }
-        // if (this.state.selectItem < 0) {
-        //     return null;
-        // }
-        // if (conntedList) {
-        //     for (let index = 0; index < conntedList.length; index++) {
-        //         const element = conntedList[index];
-        //         if (this.state.selectItem == element.item.id) {
-        //             return element.component;
-        //         }
-        //     }
-        // }
     }
 
     render() {
@@ -168,7 +126,6 @@ export default class App extends React.Component<{}, IState> {
                                     changeAction={this.state.changeAction}
                                     source={this.state.dbList}
                                     onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => this.handleLeftBarOnSelected(model, database, action)}
-                                    onClick={(item: MySqlModels.IConfig) => this.handleLeftBarOnClick(item)}
                                     onRefresh={(item: MySqlModels.IConfig, action: string) => { this.initData(item, action) }}
                                 ></LeftBar>
                                 : null
