@@ -8,12 +8,12 @@ import Confirm from '../../../component/confirm/confirm';
 var _ = require('lodash');
 var CryptoJS = require("crypto-js");
 
-
 interface IProps {
     onConnection: any,
     selectDB: MySqlModels.IConfig,
-    onRefresh: any
+    onRefresh: { (item: MySqlModels.IConfig, action: string) }
 }
+
 
 interface IState {
     showDialog: boolean,
@@ -85,7 +85,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         }
         store.set(utils.DBListKey, list);
 
-        this.props.onRefresh();
+        this.props.onRefresh(connConfig, "update");
     }
 
     handleChange = (event: any) => {
@@ -99,10 +99,12 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         const store = new utils.Store();
         var list = store.get(utils.DBListKey);
         if (list) {
-            list.splice(list.findIndex((item: MySqlModels.IConfig) => item.id === this.props.selectDB.id), 1)
+            var index = list.findIndex((item: MySqlModels.IConfig) => item.id === this.props.selectDB.id);
+            var item = list[index];
+            list.splice(index, 1)
             console.log(list);
             store.set(utils.DBListKey, list);
-            this.props.onRefresh();
+            this.props.onRefresh(item, "delete");
         }
     }
 

@@ -80,21 +80,39 @@ export default class App extends React.Component<{}, IState> {
         console.log(info);
         this.setState({ text: "无法连接数据库" });
     }
-    initData = () => {
-        //这里需要修改为push只是新增就好。
-        this.setState({ dbList: new Array<any>() }, () => {
-            const store = new utils.Store();
-            var list = store.get(utils.DBListKey);
-            list = utils.Loadsh.orderBy(list, ['id'], ['desc']);
-            var items = new Array<DBCcnfigItem>();
-            list.forEach((element: MySqlModels.IConfig, index: number) => {
-                console.log(element);
-                console.log(index);
-                items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={() => { this.initData() }} key={index} selectDB={element}></EditForm> })
+    initData = (item?: MySqlModels.IConfig, action?: string) => {
+        const store = new utils.Store();
+        if (item && action) {
+            var list = this.state.dbList;
+            if (action === "new") {
+                list.push(item);
+            } else if (action === "delete") {
+                var index = utils.Loadsh.findIndex(this.state.dbList, { id: item.id });
+                list.splice(index, 1)
+            } else if (action === "update") {
+                var index = utils.Loadsh.findIndex(this.state.dbList, { id: item.id });
+                list[index] = item;
+            }
+            this.setState({ dbList: new Array<any>() }, () => {
+                this.setState({ dbList: list });
             });
-            conntedList = items;
-            this.setState({ dbList: list });
-        });
+
+        } else {
+            //这里需要修改为push只是新增就好。
+            this.setState({ dbList: new Array<any>() }, () => {
+                var list = store.get(utils.DBListKey);
+                list = utils.Loadsh.orderBy(list, ['id'], ['desc']);
+                var items = new Array<DBCcnfigItem>();
+                list.forEach((element: MySqlModels.IConfig, index: number) => {
+                    console.log(element);
+                    console.log(index);
+                    items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={(item: MySqlModels.IConfig, action: string) => this.initData(item, action)} key={index} selectDB={element}></EditForm> })
+                });
+                conntedList = items;
+                this.setState({ dbList: list });
+            });
+        }
+
     }
 
     // querySql = () => {
@@ -183,7 +201,7 @@ export default class App extends React.Component<{}, IState> {
             <div>
                 <AppBar style={{ backgroundColor: '#D9D9D9', position: "relative" }}>
                     <Toolbar>
-                        <NewConnButton dialogClose={(value?: boolean) => { if (value) { this.initData() } }}></NewConnButton>
+                        <NewConnButton onRefresh={(item: MySqlModels.IConfig, action: string) => { this.initData(item, action) }} dialogClose={(value?: boolean) => { }}></NewConnButton>
                     </Toolbar>
                 </AppBar>
 

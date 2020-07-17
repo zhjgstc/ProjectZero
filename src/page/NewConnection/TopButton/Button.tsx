@@ -3,9 +3,11 @@ import { Button, Menu, MenuItem, Dialog, Slide, AppBar, Toolbar, IconButton, Typ
 import CloseIcon from '@material-ui/icons/Close';
 import { TransitionProps } from '@material-ui/core/transitions';
 import MySqlForm from '../MySql/Form';
+import * as MySqlModels from '../../../models/MySql';
 
 interface IProps {
-    dialogClose: any
+    dialogClose: any,
+    onRefresh: { (item: MySqlModels.IConfig, action: string) }
 }
 
 interface IState {
@@ -32,7 +34,7 @@ export default class NewConnectionButton extends React.Component<IProps, IState>
             open: false,
             dialogTitle: "",
             DBList: [
-                { key: 0, name: "MySQL", component: <MySqlForm onSubmit={(value?: boolean) => { this.handleDialogClose(value) }} onCancel={() => { this.handleDialogClose() }}></MySqlForm> },
+                { key: 0, name: "MySQL", component: <MySqlForm onRefresh={(item: MySqlModels.IConfig, action: string) => this.props.onRefresh(item, action)} onSubmit={(value?: boolean) => { this.handleDialogClose(value) }} onCancel={() => { this.handleDialogClose() }}></MySqlForm> },
                 // { key: 1, name: "PostgreSQL", component: null },
                 // { key: 2, name: "Oracle", component: null },
                 // { key: 3, name: "SQLite", component: null },

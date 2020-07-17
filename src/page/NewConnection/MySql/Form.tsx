@@ -14,7 +14,8 @@ interface IState {
 
 interface IProps {
     onCancel: any,
-    onSubmit?: any
+    onSubmit?: any,
+    onRefresh: { (item: MySqlModels.IConfig, action: string) }
 }
 
 
@@ -37,6 +38,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
     }
 
     componentDidMount() {
+
     }
 
     onCancel_Click = () => {
@@ -94,7 +96,9 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         }
 
         if (this.props.onSubmit) {
+            this.props.onRefresh(connConfig, "new");
             this.props.onSubmit(true);
+
         }
     }
 
