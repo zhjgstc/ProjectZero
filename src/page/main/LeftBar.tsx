@@ -15,8 +15,10 @@ import Confirm from '../../component/confirm/confirm';
 interface IProps {
     source: Array<MySqlModels.IConfig>,
     onClick?: any,
-    onRefresh: any,
-    onSelectDataBase: any
+    onRefresh: { (item: MySqlModels.IConfig, action: string) },
+    onSelectDataBase: any,
+    changeItem?: MySqlModels.IConfig,
+    changeAction?: string
 }
 
 interface IState {
@@ -35,9 +37,43 @@ export default class LeftBar extends React.Component<IProps, IState>{
     }
 
     componentDidMount() {
-        this.initData();
+        this.bindDataSource(this.props.source);
     }
-
+    componentWillReceiveProps(nextProps: IProps) {
+        console.log("props改变了");
+        console.log(nextProps);
+        if (nextProps.changeItem && nextProps.changeAction) {
+            var action = nextProps.changeAction;
+            var changeItem = nextProps.changeItem;
+            var list = this.state.list;
+            if (action === "new") {
+                list.push({
+                    item: changeItem,
+                    open: false,
+                    databases: new Array<MySqlModels.IDatabase>()
+                });
+            } else if (action === "delete") {
+                console.log("删除")
+                for (let index = 0; index < list.length; index++) {
+                    const element = list[index];
+                    if (element.item.id == changeItem.id) {
+                        list.splice(index, 1)
+                        break;
+                    }
+                }
+            } else if (action === "update") {
+                for (let index = 0; index < list.length; index++) {
+                    const element = list[index];
+                    if (element.item.id == changeItem.id) {
+                        list[index].item = changeItem;
+                        break;
+                    }
+                }
+            }
+            console.log(list);
+            this.setState({ list: list });
+        }
+    }
     /**
      * server右击事件
      * @param e 当前右击的元素
@@ -92,9 +128,10 @@ export default class LeftBar extends React.Component<IProps, IState>{
         menu.popup(remote.getCurrentWindow(), e.clientX, e.clientY);
     }
 
-    initData = () => {
-        var list = this.props.source;
-        if (list) {
+
+    bindDataSource = (dataSource: Array<MySqlModels.IConfig>) => {
+        var list = dataSource;
+        if (list && this.state.list.length == 0) {
             for (let index = 0; index < list.length; index++) {
                 const element = list[index];
                 this.state.list.push({
@@ -165,10 +202,12 @@ export default class LeftBar extends React.Component<IProps, IState>{
         const store = new Utils.Store();
         var list = store.get(Utils.DBListKey);
         if (list) {
-            list.splice(list.findIndex((item: MySqlModels.IConfig) => item.id === id), 1)
+            var index = list.findIndex((item: MySqlModels.IConfig) => item.id === id);
+            var item = list[index];
+            list.splice(index, 1)
             console.log(list);
             store.set(Utils.DBListKey, list);
-            this.props.onRefresh();
+            this.props.onRefresh(item, "delete");
         }
     }
 

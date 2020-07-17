@@ -27,7 +27,9 @@ interface IState {
         host: MySqlModels.IHostItem,
         database: MySqlModels.IDatabase,
         action: string
-    }
+    },
+    changeItem?: MySqlModels.IConfig,
+    changeAction?: string
 }
 
 var conntedList: Array<DBCcnfigItem>;
@@ -83,20 +85,7 @@ export default class App extends React.Component<{}, IState> {
     initData = (item?: MySqlModels.IConfig, action?: string) => {
         const store = new utils.Store();
         if (item && action) {
-            var list = this.state.dbList;
-            if (action === "new") {
-                list.push(item);
-            } else if (action === "delete") {
-                var index = utils.Loadsh.findIndex(this.state.dbList, { id: item.id });
-                list.splice(index, 1)
-            } else if (action === "update") {
-                var index = utils.Loadsh.findIndex(this.state.dbList, { id: item.id });
-                list[index] = item;
-            }
-            this.setState({ dbList: new Array<any>() }, () => {
-                this.setState({ dbList: list });
-            });
-
+            this.setState({ changeItem: item, changeAction: action });
         } else {
             //这里需要修改为push只是新增就好。
             this.setState({ dbList: new Array<any>() }, () => {
@@ -115,29 +104,6 @@ export default class App extends React.Component<{}, IState> {
 
     }
 
-    // querySql = () => {
-    //     this.setState({
-    //         fields: new Array<string>(),
-    //         text: ""
-    //     });
-
-    //     conn.query(this.state.sql, (error: any, results: any, fields: any) => {
-    //         if (error) {
-    //             console.log(error);
-    //             this.setState({
-    //                 text: error.message
-    //             });
-    //         } else {
-    //             console.log(results);
-    //             console.log(fields);
-    //             this.setState({
-    //                 fields: fields,
-    //                 results: results
-    //             });
-    //         }
-    //         this.setState(this.state);
-    //     });
-    // }
 
     /**
      * 主要是获取当前选择的数据项
@@ -156,18 +122,6 @@ export default class App extends React.Component<{}, IState> {
      * @param action 当前的动作（表，视图，函数，事件这类的
      */
     handleLeftBarOnSelected = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => {
-        // this.setState({
-        //     selectItem: undefined
-        // }, () => {
-        //     this.setState({
-        //         selectItem: {
-        //             host: host,
-        //             database: database,
-        //             action: action
-        //         }
-        //     });  
-        // });
-
         this.setState({
             selectItem: {
                 host: host,
@@ -210,10 +164,12 @@ export default class App extends React.Component<{}, IState> {
                         {
                             this.state.dbList.length > 0 ?
                                 <LeftBar
+                                    changeItem={this.state.changeItem}
+                                    changeAction={this.state.changeAction}
                                     source={this.state.dbList}
                                     onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => this.handleLeftBarOnSelected(model, database, action)}
                                     onClick={(item: MySqlModels.IConfig) => this.handleLeftBarOnClick(item)}
-                                    onRefresh={() => { this.initData() }}
+                                    onRefresh={(item: MySqlModels.IConfig, action: string) => { this.initData(item, action) }}
                                 ></LeftBar>
                                 : null
                         }
