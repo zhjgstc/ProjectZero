@@ -17,7 +17,7 @@ interface IProps {
         database: MySqlModels.IDatabase,
         action: string
     },
-    onRefresh: any
+    onRefresh: { (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) }
 }
 
 
@@ -63,7 +63,7 @@ export default class TableList extends React.Component<IProps, IState> {
     }
 
     componentWillReceiveProps(nextProps: IProps) {
-        if (this.state.item != nextProps.item) {
+        if (this.state.item !== nextProps.item) {
             this.setState({
                 order: 'asc',
                 orderBy: 'TABLE_NAME',
@@ -170,7 +170,7 @@ export default class TableList extends React.Component<IProps, IState> {
     }
 
     rowDoubleClick = (item: MySqlModels.ITableInfo, index: number) => {
-
+        this.props.onRefresh(this.state.item.host, this.state.item.database, "表", item.TABLE_NAME);
     }
 
     isSelected = (item: MySqlModels.ITableInfo, index: number) => {
@@ -191,6 +191,7 @@ export default class TableList extends React.Component<IProps, IState> {
                             <TableRow key={index} selected={isItemSelected} onClick={() => this.rowClick(item, index)} onDoubleClick={() => this.rowDoubleClick(item, index)}>
                                 <TableCell>
                                     <Button
+                                        onClick={() => this.rowDoubleClick(item, index)}
                                         style={{ textTransform: "unset" }}
                                         variant='text'
                                         startIcon={<Icon className="fa fa-table" style={{ color: "#3C85BE" }} />}

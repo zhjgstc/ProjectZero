@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
 import * as MySqlModels from '../../../models/MySql';
-import { Grid, TextField, AppBar, Toolbar, Button, Switch, Checkbox } from '@material-ui/core';
+import { Grid, TextField, AppBar, Toolbar, Button } from '@material-ui/core';
 import Confirm from '../../../component/confirm/confirm';
 
 var _ = require('lodash');
@@ -80,7 +80,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         var list = store.get(utils.DBListKey);
         var index = _.findIndex(list, { id: connConfig.id });
         console.log(index);
-        if (index != -1) {
+        if (index !== -1) {
             list[index] = connConfig;
         }
         store.set(utils.DBListKey, list);

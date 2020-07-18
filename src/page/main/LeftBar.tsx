@@ -1,6 +1,6 @@
 import React from 'react';
 import List from '@material-ui/core/List';
-import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
+import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
@@ -53,7 +53,10 @@ export default class LeftBar extends React.Component<IProps, IState>{
                 console.log("删除")
                 for (let index = 0; index < list.length; index++) {
                     const element = list[index];
-                    if (element.item.id == changeItem.id) {
+                    if (element.item.id === changeItem.id) {
+                        if (element.open && element.conn) {
+                            element.conn.end();
+                        }
                         list.splice(index, 1)
                         break;
                     }
@@ -61,7 +64,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
             } else if (action === "update") {
                 for (let index = 0; index < list.length; index++) {
                     const element = list[index];
-                    if (element.item.id == changeItem.id) {
+                    if (element.item.id === changeItem.id) {
                         list[index].item = changeItem;
                         break;
                     }
@@ -128,7 +131,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
     bindDataSource = (dataSource: Array<MySqlModels.IConfig>) => {
         var list = dataSource;
-        if (list && this.state.list.length == 0) {
+        if (list && this.state.list.length === 0) {
             for (let index = 0; index < list.length; index++) {
                 const element = list[index];
                 this.state.list.push({
@@ -147,22 +150,23 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
     openConnectionClick = (item: MySqlModels.IHostItem) => {
         var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
-        var model = this.state.list[index];
+        var list = this.state.list;
+        var model = list[index];
         if (model.open) {
             return;
         }
         DBHelper.openConnection(item.item, (flag: boolean, conn: any) => {
             if (flag) {
-                this.state.list[index].conn = conn;
+                list[index].conn = conn;
                 DBHelper.querySql(conn, "show databases;", (error: any, results: any, fields: any) => {
                     console.log(results);
                     if (!error) {
                         for (let i = 0; i < results.length; i++) {
                             const element = results[i];
-                            this.state.list[index].databases.push({ name: element.Database, open: false, selected: false, tables: new Array<MySqlModels.ITableInfo>() });
+                            list[index].databases.push({ name: element.Database, open: false, selected: false, tables: new Array<MySqlModels.ITableInfo>() });
                         }
-                        this.state.list[index].open = true;
-                        this.setState({ list: this.state.list });
+                        list[index].open = true;
+                        this.setState({ list: list });
 
                     }
                 });
@@ -175,7 +179,8 @@ export default class LeftBar extends React.Component<IProps, IState>{
 
     closeConnClick = (item: MySqlModels.IHostItem) => {
         var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
-        var model = this.state.list[index];
+        var list = this.state.list;
+        var model = list[index];
         if (!model.open) {
             return;
         }
@@ -184,8 +189,8 @@ export default class LeftBar extends React.Component<IProps, IState>{
             model.conn.end();
             model.conn = null;
             model.databases = new Array<MySqlModels.IDatabase>();
-            this.state.list[index] = model;
-            this.setState({ list: this.state.list });
+            list[index] = model;
+            this.setState({ list: list });
         }
     }
 
@@ -207,13 +212,14 @@ export default class LeftBar extends React.Component<IProps, IState>{
     }
 
     useDataBaseOnDoubleClick = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) => {
-        var index = Utils.Loadsh.findIndex(this.state.list, { item: host.item });
-        var model = this.state.list[index];
+        var list = this.state.list;
+        var index = Utils.Loadsh.findIndex(list, { item: host.item });
+        var model = list[index];
         var dataBaseIndex = Utils.Loadsh.findIndex(model.databases, { name: database.name });
         if (!model.databases[dataBaseIndex].open) {
             model.databases[dataBaseIndex].open = true;
-            this.state.list[index] = model;
-            this.setState({ list: this.state.list });
+            list[index] = model;
+            this.setState({ list: list });
             this.props.onSelectDataBase(model, database, "表");
         }
     }

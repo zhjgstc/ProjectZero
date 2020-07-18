@@ -7,7 +7,6 @@ import * as MySqlModels from '../../models/MySql';
 import Content from './Content';
 import EditForm from '../EditConnection/MySql/Form';
 
-var conn: any;
 
 interface DBCcnfigItem {
     item: MySqlModels.IConfig,
@@ -30,8 +29,6 @@ interface IState {
     changeItem?: MySqlModels.IConfig,
     changeAction?: string
 }
-
-var conntedList: Array<DBCcnfigItem>;
 
 export default class App extends React.Component<{}, IState> {
     constructor(props: any) {
@@ -76,7 +73,6 @@ export default class App extends React.Component<{}, IState> {
                     console.log(index);
                     items.push({ item: element, opened: false, component: <EditForm onConnection={() => { }} onRefresh={(item: MySqlModels.IConfig, action: string) => this.initData(item, action)} key={index} selectDB={element}></EditForm> })
                 });
-                conntedList = items;
                 this.setState({ dbList: list });
             });
         }
