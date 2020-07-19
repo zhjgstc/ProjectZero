@@ -78,7 +78,7 @@ export default class Content extends React.Component<IProps, IState> {
                 host: host,
                 database: database,
                 action: action,
-                component: this.getComponent(host, action),
+                component: this.getComponent(host, database, name, action),
                 selected: true
             };
             list.push(item);
@@ -86,9 +86,9 @@ export default class Content extends React.Component<IProps, IState> {
         this.setState({ chipList: list });
     }
 
-    getComponent = (host: MySqlModels.IHostItem, action) => {
+    getComponent = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, name: string, action: string) => {
         if (action === "表") {
-            return <MySqlPageTable></MySqlPageTable>
+            return <MySqlPageTable host={host} database={database} name={name} action={action}></MySqlPageTable>
         } else {
             return null;
         }
@@ -111,7 +111,6 @@ export default class Content extends React.Component<IProps, IState> {
     renderChips = () => {
         return this.state.chipList.map((item: chipItem, index: number) => {
             return (
-
                 <Tooltip title={item.title} key={index}>
                     <Chip
                         variant={item.selected ? "default" : "outlined"}
