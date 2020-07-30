@@ -5,6 +5,7 @@ import MySqlFunction from '../../component/content/MySql/Function/Function';
 import MySqlTable from '../../component/content/MySql/Table/Table';
 import MySqlView from '../../component/content/MySql/View/View';
 import MySqlPageTable from '../MySql/Table/Table';
+import MysqlQuery from '../MySql/Query/Query';
 
 import * as Utils from '../../utils/Utils';
 import { Chip, Icon, Tooltip } from "@material-ui/core";
@@ -15,6 +16,8 @@ interface IProps {
         database: MySqlModels.IDatabase,
         action: string
     },
+    newActionHost: MySqlModels.IHostItem,
+    newAction: string,
     onRefresh: any
 }
 
@@ -57,14 +60,34 @@ export default class Content extends React.Component<IProps, IState> {
         this.setState({ chipList: list });
     }
 
+    componentWillReceiveProps(nextProps: IProps) {
+        if (nextProps.newAction && nextProps.newActionHost && this.props.newActionHost != nextProps.newActionHost) {
+            var list = this.state.chipList;
+            list.push({
+                title: "无标题(" + nextProps.newActionHost.item.name + ")",
+                name: "",
+                host: nextProps.newActionHost,
+                database: null,
+                action: nextProps.newAction,
+                component: <MysqlQuery host={nextProps.newActionHost}></MysqlQuery>,
+                selected: true
+            });
+            this.setState({ chipList: list }, () => {
+                this.setSelectItemOnClick(list.length-1);
+            });
+        }
+
+    }
+
     callBackComponent = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) => {
         var list = this.state.chipList;
         var title = name + "@" + database.name + "(" + host.item.name + ")";
         var flag = false;
         for (let index = 0; index < list.length; index++) {
             const element = list[index];
-            if (host.item.id === element.host.item.id && element.title === title) {
+            if (host === element.host && element.title === title) {
                 flag = true;
+                list[index].selected = true;
             } else {
                 list[index].selected = false;
             }
@@ -89,7 +112,11 @@ export default class Content extends React.Component<IProps, IState> {
     getComponent = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, name: string, action: string) => {
         if (action === "表") {
             return <MySqlPageTable host={host} database={database} name={name} action={action}></MySqlPageTable>
-        } else {
+        }
+        else if (action === "查询") {
+
+        }
+        else {
             return null;
         }
     }
@@ -155,13 +182,6 @@ export default class Content extends React.Component<IProps, IState> {
         }
     }
 
-    renderContent = () => {
-        var index = Utils.Loadsh.findIndex(this.state.chipList, { selected: true });
-        if (this.state.chipList[index] && this.state.chipList[index].component) {
-            return this.state.chipList[index].component;
-        }
-    }
-
     render() {
         return (
             <div>
@@ -170,7 +190,13 @@ export default class Content extends React.Component<IProps, IState> {
                 }
 
                 {
-                    this.renderContent()
+                    this.state.chipList.map((item: chipItem, index: number) => {
+                        return (
+                            <div id={item.title + "_" + index} key={index} style={{ display: item.selected ? "block" : "none" }}>
+                                {item.component}
+                            </div>
+                        )
+                    })
                 }
             </div>
         )

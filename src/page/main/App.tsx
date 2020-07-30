@@ -26,6 +26,8 @@ interface IState {
         database: MySqlModels.IDatabase,
         action: string
     },
+    rightMenuHost?: MySqlModels.IHostItem,
+    rightMenuAction?: string,
     changeItem?: MySqlModels.IConfig,
     changeAction?: string
 }
@@ -39,9 +41,10 @@ export default class App extends React.Component<{}, IState> {
             fields: new Array<any>(),
             results: new Array<any>(),
             showNewConnForm: false,
-            dbList: new Array<any>()
+            dbList: new Array<any>(),
         }
     }
+
     componentDidMount() {
         this.initData();
     }
@@ -99,7 +102,13 @@ export default class App extends React.Component<{}, IState> {
     renderContent = () => {
         if (this.state.selectItem) {
             return (
-                <Content onRefresh={() => { }} item={this.state.selectItem}></Content>
+                <Content
+                    onRefresh={() => { }}
+                    newAction={this.state.rightMenuAction}
+                    newActionHost={this.state.rightMenuHost}
+                    item={this.state.selectItem}
+                >
+                </Content>
             )
         }
     }
@@ -121,8 +130,17 @@ export default class App extends React.Component<{}, IState> {
                                     changeItem={this.state.changeItem}
                                     changeAction={this.state.changeAction}
                                     source={this.state.dbList}
-                                    onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => this.handleLeftBarOnSelected(model, database, action)}
-                                    onRefresh={(item: MySqlModels.IConfig, action: string) => { this.initData(item, action) }}
+                                    onRightMenuClick={(host: MySqlModels.IHostItem, action: string) => {
+                                        this.setState({ rightMenuAction: "", rightMenuHost: null }, () => {
+                                            this.setState({ rightMenuAction: action, rightMenuHost: host });
+                                        });
+                                    }}
+                                    onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => {
+                                        this.handleLeftBarOnSelected(model, database, action)
+                                    }}
+                                    onRefresh={(item: MySqlModels.IConfig, action: string) => {
+                                        this.initData(item, action)
+                                    }}
                                 ></LeftBar>
                                 : null
                         }

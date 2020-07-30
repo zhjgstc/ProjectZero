@@ -17,7 +17,8 @@ interface IProps {
     onRefresh: { (item: MySqlModels.IConfig, action: string) },
     onSelectDataBase: any,
     changeItem?: MySqlModels.IConfig,
-    changeAction?: string
+    changeAction?: string,
+    onRightMenuClick: { (item: MySqlModels.IHostItem, action: string) }
 }
 
 interface IState {
@@ -80,6 +81,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
      * @param item 元素对应的数据
      */
     contextMenu = (e: any, item: MySqlModels.IHostItem) => {
+        const onRightMenuClick = this.props.onRightMenuClick;
         const { remote } = window.require('electron');
         const { Menu, MenuItem } = remote;
 
@@ -110,23 +112,29 @@ export default class LeftBar extends React.Component<IProps, IState>{
                 this.setState({ rightClickItem: item, showDialog: true });
             }
         }));
-        menu.append(new MenuItem({ type: 'separator' }));//分割线
-        menu.append(new MenuItem({
-            label: '新建数据库',
-            click: function () {
-                console.log('item 1 clicked')
-            }
-        }));
-        menu.append(new MenuItem({
-            label: '新建查询',
-            click: function () {
-                console.log('item 1 clicked')
-            }
-        }));
+
+        if (item.open) {
+            menu.append(new MenuItem({ type: 'separator' }));//分割线
+            menu.append(new MenuItem({
+                label: '新建数据库',
+                click: function () {
+                    console.log('item 1 clicked')
+                }
+            }));
+            menu.append(new MenuItem({
+                label: '新建查询',
+                click: function () {
+                    onRightMenuClick(item, "新建查询");
+                    console.log('item 1 clicked')
+                }
+            }));
+        }
+
 
         e.preventDefault();
         menu.popup(remote.getCurrentWindow(), e.clientX, e.clientY);
     }
+
 
 
     bindDataSource = (dataSource: Array<MySqlModels.IConfig>) => {
