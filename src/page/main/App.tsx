@@ -1,12 +1,11 @@
 import React from 'react';
 import * as utils from '../../utils/Utils';
-import { Grid, AppBar, Toolbar } from '@material-ui/core';
+import { Grid, AppBar, Toolbar, Button } from '@material-ui/core';
 import NewConnButton from '../NewConnection/TopButton/Button';
 import LeftBar from './LeftBar';
 import * as MySqlModels from '../../models/MySql';
 import Content from './Content';
 import EditForm from '../EditConnection/MySql/Form';
-
 
 interface DBCcnfigItem {
     item: MySqlModels.IConfig,
