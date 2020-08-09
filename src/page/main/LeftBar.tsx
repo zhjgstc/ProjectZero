@@ -1,4 +1,5 @@
 import React from 'react';
+import { connect } from 'react-redux'
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -9,16 +10,19 @@ import Icon from '@material-ui/core/Icon';
 import * as DBHelper from '../../component/db-helper/MySql';
 import * as Utils from '../../utils/Utils';
 import Confirm from '../../component/confirm/confirm';
-
-
+import { initHostAction, updateHostAction, closeHostAction, delHostAction } from '../../actions/Main/LeftBarAction';
 
 interface IProps {
-    source: Array<MySqlModels.IConfig>,
+    source: Array<MySqlModels.IHostItem>,
     onRefresh: { (item: MySqlModels.IConfig, action: string) },
     onSelectDataBase: any,
     changeItem?: MySqlModels.IConfig,
     changeAction?: string,
-    onRightMenuClick: { (item: MySqlModels.IHostItem, action: string) }
+    onRightMenuClick: { (item: MySqlModels.IHostItem, action: string) },
+    initHosts: () => any,
+    updateHost: { (item: MySqlModels.IHostItem) },
+    closeHost: { (item: MySqlModels.IHostItem) },
+    delHost: { (item: MySqlModels.IHostItem) }
 }
 
 interface IState {
@@ -27,7 +31,7 @@ interface IState {
     showDialog: boolean
 }
 
-export default class LeftBar extends React.Component<IProps, IState>{
+class LeftBar extends React.Component<IProps, IState>{
     constructor(props: any) {
         super(props);
         this.state = {
@@ -37,8 +41,10 @@ export default class LeftBar extends React.Component<IProps, IState>{
     }
 
     componentDidMount() {
-        this.bindDataSource(this.props.source);
+        this.props.initHosts();
+        //this.bindDataSource(this.props.source);
     }
+
     componentWillReceiveProps(nextProps: IProps) {
         if (nextProps.changeItem && nextProps.changeAction) {
             var action = nextProps.changeAction;
@@ -136,29 +142,13 @@ export default class LeftBar extends React.Component<IProps, IState>{
     }
 
 
-
-    bindDataSource = (dataSource: Array<MySqlModels.IConfig>) => {
-        var list = dataSource;
-        if (list && this.state.list.length === 0) {
-            for (let index = 0; index < list.length; index++) {
-                const element = list[index];
-                this.state.list.push({
-                    item: element,
-                    open: false,
-                    databases: new Array<MySqlModels.IDatabase>()
-                });
-            }
-            this.setState({ list: this.state.list });
-        }
-    }
-
     showEditForm = (item: MySqlModels.IConfig) => {
 
     }
 
     openConnectionClick = (item: MySqlModels.IHostItem) => {
-        var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
-        var list = this.state.list;
+        var index = Utils.Loadsh.findIndex(this.props.source, { item: item.item });
+        var list = this.props.source;
         var model = list[index];
         if (model.open) {
             return;
@@ -174,20 +164,18 @@ export default class LeftBar extends React.Component<IProps, IState>{
                             list[index].databases.push({ name: element.Database, open: false, selected: false, tables: new Array<MySqlModels.ITableInfo>() });
                         }
                         list[index].open = true;
-                        this.setState({ list: list });
-
+                        this.props.updateHost(list[index]);
                     }
                 });
             } else {
                 alert("无法连接数据库")
             }
         });
-
     }
 
     closeConnClick = (item: MySqlModels.IHostItem) => {
-        var index = Utils.Loadsh.findIndex(this.state.list, { item: item.item });
-        var list = this.state.list;
+        var index = Utils.Loadsh.findIndex(this.props.source, { item: item.item });
+        var list = this.props.source;
         var model = list[index];
         if (!model.open) {
             return;
@@ -197,25 +185,26 @@ export default class LeftBar extends React.Component<IProps, IState>{
             model.conn.end();
             model.conn = null;
             model.databases = new Array<MySqlModels.IDatabase>();
-            list[index] = model;
-            this.setState({ list: list });
+            this.props.closeHost(model);
         }
     }
 
     /**
      * 删除连接弹出提示框的连接
      */
-    onConfirmSubmit = (id: number) => {
+    onConfirmSubmit = (host: MySqlModels.IHostItem) => {
         this.setState({ showDialog: false });
         const store = new Utils.Store();
+        var id = host.item.id;
         var list = store.get(Utils.DBListKey);
         if (list) {
             var index = list.findIndex((item: MySqlModels.IConfig) => item.id === id);
             var item = list[index];
             list.splice(index, 1)
+
             console.log(list);
             store.set(Utils.DBListKey, list);
-            this.props.onRefresh(item, "delete");
+            this.props.delHost(host);
         }
     }
 
@@ -299,34 +288,59 @@ export default class LeftBar extends React.Component<IProps, IState>{
         )
     }
 
+    renderListItem = () => {
+        return this.props.source.map((item: MySqlModels.IHostItem, index) => {
+            return (
+                <div key={index}>
+                    <ListItem button key={index}
+                        onDoubleClick={() => this.openConnectionClick(item)}
+                        onContextMenu={(e) => this.contextMenu(e, item)}>
+                        <ListItemIcon>
+                            <Icon className="fa fa-server" style={{ color: item.open ? "green" : "black" }} />
+                        </ListItemIcon>
+                        <ListItemText primary={item.item.name} />
+                    </ListItem>
+                    <Collapse in={item.open} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            {
+                                item.databases.length > 0 ? this.renderDataBase(item) : null
+                            }
+
+                        </List>
+                    </Collapse>
+                </div>
+            )
+        })
+    }
+
     render() {
         return (
             <div style={{ borderRightWidth: "1px", borderRightColor: "#D4D4D4" }}>
                 <List>
                     {
-                        this.state.list ? this.state.list.map((item: MySqlModels.IHostItem, index) => {
+                        this.renderListItem()
+                        // this.props.source ? this.props.source.map((item: MySqlModels.IHostItem, index) => {
+                        //     return (
+                        //         <div key={index}>
+                        //             <ListItem button key={index}
+                        //                 onDoubleClick={() => this.openConnectionClick(item)}
+                        //                 onContextMenu={(e) => this.contextMenu(e, item)}>
+                        //                 <ListItemIcon>
+                        //                     <Icon className="fa fa-server" style={{ color: item.open ? "green" : "black" }} />
+                        //                 </ListItemIcon>
+                        //                 <ListItemText primary={item.item.name} />
+                        //             </ListItem>
+                        //             <Collapse in={item.open} timeout="auto" unmountOnExit>
+                        //                 <List component="div" disablePadding>
+                        //                     {
+                        //                         item.databases.length > 0 ? this.renderDataBase(item) : null
+                        //                     }
 
-                            return (
-                                <div key={index}>
-                                    <ListItem button key={index}
-                                        onDoubleClick={() => this.openConnectionClick(item)}
-                                        onContextMenu={(e) => this.contextMenu(e, item)}>
-                                        <ListItemIcon>
-                                            <Icon className="fa fa-server" style={{ color: item.open ? "green" : "black" }} />
-                                        </ListItemIcon>
-                                        <ListItemText primary={item.item.name} />
-                                    </ListItem>
-                                    <Collapse in={item.open} timeout="auto" unmountOnExit>
-                                        <List component="div" disablePadding>
-                                            {
-                                                item.databases.length > 0 ? this.renderDataBase(item) : null
-                                            }
-
-                                        </List>
-                                    </Collapse>
-                                </div>
-                            )
-                        }) : null
+                        //                 </List>
+                        //             </Collapse>
+                        //         </div>
+                        //     )
+                        // }) : null
                     }
                 </List>
                 {
@@ -335,7 +349,7 @@ export default class LeftBar extends React.Component<IProps, IState>{
                         text={"请确认是否要删除" + this.state.rightClickItem.item.name}
                         open={this.state.showDialog}
                         onClose={() => { this.setState({ showDialog: false }) }}
-                        onSubmit={() => this.onConfirmSubmit(this.state.rightClickItem.item.id)}
+                        onSubmit={() => this.onConfirmSubmit(this.state.rightClickItem)}
                     ></Confirm> : null
                 }
 
@@ -343,3 +357,20 @@ export default class LeftBar extends React.Component<IProps, IState>{
         )
     }
 }
+
+
+
+const mapStateToProps = (state: any) => {
+    return {
+        source: state.reduLeftBar.hosts
+    }
+};
+
+const mapDispatchToProps = (dispatch: any) => ({
+    initHosts: () => dispatch(initHostAction()),
+    updateHost: (item: MySqlModels.IHostItem) => dispatch(updateHostAction(item)),
+    closeHost: (item: MySqlModels.IHostItem) => dispatch(closeHostAction(item)),
+    delHost: (item: MySqlModels.IHostItem) => dispatch(delHostAction(item))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LeftBar)

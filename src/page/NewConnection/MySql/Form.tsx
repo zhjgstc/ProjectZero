@@ -1,10 +1,10 @@
 import React from 'react';
+import { connect } from "react-redux";
 import moment from 'moment';
 import * as utils from '../../../utils/Utils';
 import * as MySqlModels from '../../../models/MySql';
 import { Grid, TextField, AppBar, Toolbar, Button, } from '@material-ui/core';
-
-var _ = require('lodash');
+import { addHostAction } from "../../../actions/Main/LeftBarAction";
 var CryptoJS = require("crypto-js");
 const mysql = window.require('mysql');
 
@@ -15,12 +15,13 @@ interface IState {
 interface IProps {
     onCancel: any,
     onSubmit?: any,
-    onRefresh: { (item: MySqlModels.IConfig, action: string) }
+    onRefresh: { (item: MySqlModels.IConfig, action: string) },
+    addHost: { (item: MySqlModels.IHostItem) }
 }
 
 
 
-export default class MySqlFrom extends React.Component<IProps, IState> {
+class MySqlFrom extends React.Component<IProps, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -85,7 +86,7 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         } else {
             var list = store.get(utils.DBListKey);
             console.log(list);
-            if (!_.find(list, { id: connConfig.id })) {
+            if (!utils.Loadsh.find(list, { id: connConfig.id })) {
                 connConfig.id = list.length;
                 list.push(connConfig);
             } else {
@@ -94,12 +95,17 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
 
             store.set(utils.DBListKey, list);
         }
+        this.props.addHost({
+            item: connConfig,
+            open: false,
+            databases: new Array<MySqlModels.IDatabase>()
+        });
+        alert('创建成功');
+        // if (this.props.onSubmit) {
+        //     this.props.onRefresh(connConfig, "new");
+        //     this.props.onSubmit(true);
 
-        if (this.props.onSubmit) {
-            this.props.onRefresh(connConfig, "new");
-            this.props.onSubmit(true);
-
-        }
+        // }
     }
 
     onTestConnection_Click = () => {
@@ -188,3 +194,16 @@ export default class MySqlFrom extends React.Component<IProps, IState> {
         )
     }
 }
+
+
+const mapStateToProps = (state: any) => {
+    return {
+
+    }
+};
+
+const mapDispatchToProps = (dispatch: any) => ({
+    addHost: (item: MySqlModels.IHostItem) => dispatch(addHostAction(item))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MySqlFrom)
