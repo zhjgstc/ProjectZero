@@ -1,86 +1,37 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import * as MySqlModels from '../../models/MySql';
+import MySqlPageTable from '../MySql/Table/Table';
+import MysqlQuery from '../MySql/Query/Query';
+import { ISelectItem, IChipItem, setChipSelectItemAction, delChipItemAction } from '../../actions/Main/ContentAction';
+import * as Utils from '../../utils/Utils';
+import { Chip, Icon, Tooltip } from "@material-ui/core";
 import MySqlEvent from '../../component/content/MySql/Event/Event';
 import MySqlFunction from '../../component/content/MySql/Function/Function';
 import MySqlTable from '../../component/content/MySql/Table/Table';
 import MySqlView from '../../component/content/MySql/View/View';
-import MySqlPageTable from '../MySql/Table/Table';
-import MysqlQuery from '../MySql/Query/Query';
-
-import * as Utils from '../../utils/Utils';
-import { Chip, Icon, Tooltip } from "@material-ui/core";
 
 interface IProps {
-    item: {
-        host: MySqlModels.IHostItem,
-        database: MySqlModels.IDatabase,
-        action: string
-    },
-    newActionHost: MySqlModels.IHostItem,
-    newAction: string,
-    onRefresh: any
+    item: ISelectItem,
+    chipList: Array<IChipItem>,
+    setChipSelect: { (index: number) },
+    delChipItem: { (index: number) }
 }
 
 interface IState {
     connected: boolean,
-    chipList: Array<chipItem>,
 }
 
-interface chipItem {
-    title: string
-    name: string
-    host: MySqlModels.IHostItem,
-    database: MySqlModels.IDatabase,
-    action: string,
-    component: any,
-    selected: boolean
-}
 
-export default class Content extends React.Component<IProps, IState> {
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            connected: false,
-            chipList: new Array<chipItem>(),
-        }
-
-    }
-
+class Content extends React.Component<IProps, IState> {
     componentDidMount() {
-        var list = this.state.chipList;
-        list.push({
-            title: "对象",
-            name: "",
-            host: this.props.item.host,
-            database: this.props.item.database,
-            action: this.props.item.action,
-            component: this.getMainComponent(),
-            selected: true
-        });
-        this.setState({ chipList: list });
     }
 
     componentWillReceiveProps(nextProps: IProps) {
-        if (nextProps.newAction && nextProps.newActionHost && this.props.newActionHost != nextProps.newActionHost) {
-            var list = this.state.chipList;
-            list.push({
-                title: "无标题(" + nextProps.newActionHost.item.name + ")",
-                name: "",
-                host: nextProps.newActionHost,
-                database: null,
-                action: nextProps.newAction,
-                component: <MysqlQuery host={nextProps.newActionHost}></MysqlQuery>,
-                selected: true
-            });
-            this.setState({ chipList: list }, () => {
-                this.setSelectItemOnClick(list.length-1);
-            });
-        }
-
     }
 
     callBackComponent = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) => {
-        var list = this.state.chipList;
+        var list = this.props.chipList;
         var title = name + "@" + database.name + "(" + host.item.name + ")";
         var flag = false;
         for (let index = 0; index < list.length; index++) {
@@ -95,7 +46,7 @@ export default class Content extends React.Component<IProps, IState> {
 
 
         if (!flag) {
-            var item: chipItem = {
+            var item: IChipItem = {
                 title: title,
                 name: name,
                 host: host,
@@ -106,7 +57,7 @@ export default class Content extends React.Component<IProps, IState> {
             };
             list.push(item);
         }
-        this.setState({ chipList: list });
+        //this.setState({ chipList: list });
     }
 
     getComponent = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, name: string, action: string) => {
@@ -122,21 +73,16 @@ export default class Content extends React.Component<IProps, IState> {
     }
 
     setSelectItemOnClick = (index: number) => {
-        for (let i = 0; i < this.state.chipList.length; i++) {
-            this.state.chipList[i].selected = false;
-        }
-        this.state.chipList[index].selected = true;
-        this.setState({ chipList: this.state.chipList });
+        this.props.setChipSelect(index);
     }
 
     deleteChipItem = (index: number) => {
-        this.state.chipList.splice(index, 1);
-        this.state.chipList[0].selected = true;
-        this.setState({ chipList: this.state.chipList });
+        this.props.delChipItem(index);
     }
 
     renderChips = () => {
-        return this.state.chipList.map((item: chipItem, index: number) => {
+
+        return this.props.chipList.map((item: IChipItem, index: number) => {
             return (
                 <Tooltip title={item.title} key={index}>
                     <Chip
@@ -153,34 +99,7 @@ export default class Content extends React.Component<IProps, IState> {
         })
     }
 
-    getMainComponent = () => {
-        switch (this.props.item.action) {
-            case "表":
-                {
-                    return (
-                        <MySqlTable onRefresh={(host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) => this.callBackComponent(host, database, action, name)} item={this.props.item}></MySqlTable>
-                    )
-                }
-            case "视图":
-                {
-                    return (
-                        <MySqlView></MySqlView>
-                    )
-                }
-            case "函数":
-                {
-                    return (
-                        <MySqlFunction></MySqlFunction>
-                    )
-                }
-            case "事件":
-                {
-                    return (
-                        <MySqlEvent></MySqlEvent>
-                    )
-                }
-        }
-    }
+
 
     render() {
         return (
@@ -190,10 +109,12 @@ export default class Content extends React.Component<IProps, IState> {
                 }
 
                 {
-                    this.state.chipList.map((item: chipItem, index: number) => {
+                    this.props.chipList.map((item: IChipItem, index: number) => {
                         return (
                             <div id={item.title + "_" + index} key={index} style={{ display: item.selected ? "block" : "none" }}>
-                                {item.component}
+                                {
+                                    item.component
+                                }
                             </div>
                         )
                     })
@@ -202,3 +123,18 @@ export default class Content extends React.Component<IProps, IState> {
         )
     }
 }
+
+
+const mapStateToProps = (state: any) => {
+    return {
+        item: state.reduContent.selectItem,
+        chipList: state.reduContent.chipList
+    }
+};
+
+const mapDispatchToProps = (dispatch: any) => ({
+    setChipSelect: (index: number) => dispatch(setChipSelectItemAction(index)),
+    delChipItem: (index: number) => dispatch(delChipItemAction(index))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Content)

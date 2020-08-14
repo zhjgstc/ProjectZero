@@ -6,8 +6,6 @@ import LeftBar from './LeftBar';
 import * as MySqlModels from '../../models/MySql';
 import Content from './Content';
 import EditForm from '../EditConnection/MySql/Form';
-import TestButton from './Button';
-import NumCom from './Num';
 interface DBCcnfigItem {
     item: MySqlModels.IConfig,
     opened: boolean,
@@ -100,17 +98,7 @@ export default class App extends React.Component<{}, IState> {
     }
 
     renderContent = () => {
-        if (this.state.selectItem) {
-            return (
-                <Content
-                    onRefresh={() => { }}
-                    newAction={this.state.rightMenuAction}
-                    newActionHost={this.state.rightMenuHost}
-                    item={this.state.selectItem}
-                >
-                </Content>
-            )
-        }
+        return Content;
     }
 
     render() {
@@ -123,12 +111,6 @@ export default class App extends React.Component<{}, IState> {
                 </AppBar>
 
                 <Grid container spacing={3} style={{ paddingTop: "10px" }}>
-                    {/* <Grid item xs={12}>
-                        <TestButton></TestButton>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <NumCom></NumCom>
-                    </Grid> */}
                     <Grid item xs={3}>
                         <LeftBar
                             changeItem={this.state.changeItem}
@@ -147,9 +129,7 @@ export default class App extends React.Component<{}, IState> {
                         ></LeftBar>
                     </Grid>
                     <Grid item xs={9}>
-                        {
-                            this.renderContent()
-                        }
+                        <Content></Content>
                         {/* {
                             this.state.conntedList && this.state.selectItem > 0 ? this.state.conntedList.map((item, index) => {
                                 if (item.item.id == this.state.selectItem) {

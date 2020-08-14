@@ -85,3 +85,20 @@ export const delHostAction = (item: MySqlModels.IHostItem) => {
     }
 }
 
+/**
+ * 使用数据库
+ * @param host 主机
+ * @param database 数据库
+ */
+export const useDataBaseAction = (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) => {
+        var index = utils.Loadsh.findIndex(HostList, { item: host.item });
+        var model = HostList[index];
+        var dataBaseIndex = utils.Loadsh.findIndex(model.databases, { name: database.name });
+        if (!model.databases[dataBaseIndex].open) {
+            model.databases[dataBaseIndex].open = true;
+            HostList[index] = model;
+            return {
+                type: OPENHOST, hosts: HostList
+            }
+        }
+}

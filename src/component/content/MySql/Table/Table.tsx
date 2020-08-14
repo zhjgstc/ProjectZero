@@ -1,7 +1,9 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import * as MySqlModels from '../../../../models/MySql';
 import * as DBHelper from '../../../db-helper/MySql';
 import { Icon, Tooltip, IconButton, Button, Table, TableHead, TableRow, TableCell, TableBody, TableSortLabel } from '@material-ui/core';
+import { addChipItemAction, ISelectItem, getTablesAction } from '../../../../actions/Main/ContentAction';
 import moment from 'moment';
 
 interface HeadCell {
@@ -17,7 +19,9 @@ interface IProps {
         database: MySqlModels.IDatabase,
         action: string
     },
-    onRefresh: { (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) }
+    addChipItem: { (selectItem: ISelectItem, name: string) },
+    getTables: { (selectItem: ISelectItem, table: Array<MySqlModels.ITableInfo>) }
+    //onRefresh: { (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string, name: string) }
 }
 
 
@@ -30,11 +34,11 @@ interface IState {
         item: MySqlModels.ITableInfo,
         index: number
     },
-    item: {
-        host: MySqlModels.IHostItem,
-        database: MySqlModels.IDatabase,
-        action: string
-    }
+    // item: {
+    //     host: MySqlModels.IHostItem,
+    //     database: MySqlModels.IDatabase,
+    //     action: string
+    // }
 }
 
 
@@ -49,13 +53,13 @@ const headCells: HeadCell[] = [
     { id: 'TABLE_COLLATION', numeric: true, disablePadding: false, label: '排序规则' },
     { id: 'TABLE_COMMENT', numeric: true, disablePadding: false, label: '注释' },
 ];
-export default class TableList extends React.Component<IProps, IState> {
+class TableList extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
             order: 'asc',
             orderBy: 'TABLE_NAME',
-            item: this.props.item
+            //item: this.props.item
         }
     }
     componentDidMount() {
@@ -63,14 +67,7 @@ export default class TableList extends React.Component<IProps, IState> {
     }
 
     componentWillReceiveProps(nextProps: IProps) {
-        if (this.state.item !== nextProps.item) {
-            this.setState({
-                order: 'asc',
-                orderBy: 'TABLE_NAME',
-                item: nextProps.item
-            }, () => { this.initData() });
 
-        }
     }
 
     initData = () => {
@@ -113,9 +110,8 @@ export default class TableList extends React.Component<IProps, IState> {
                     }
                     list.push(model);
                 }
-                var hostItem = this.state.item;
-                hostItem.database.tables = list;
-                this.setState({ item: hostItem });
+                this.props.getTables(this.props.item, list);
+
             }
         });
 
@@ -170,7 +166,9 @@ export default class TableList extends React.Component<IProps, IState> {
     }
 
     rowDoubleClick = (item: MySqlModels.ITableInfo, index: number) => {
-        this.props.onRefresh(this.state.item.host, this.state.item.database, "表", item.TABLE_NAME);
+        console.log(this.props.item);
+        this.props.addChipItem(this.props.item, item.TABLE_NAME);
+        //this.props.onRefresh(this.state.item.host, this.state.item.database, "表", item.TABLE_NAME);
     }
 
     isSelected = (item: MySqlModels.ITableInfo, index: number) => {
@@ -185,7 +183,7 @@ export default class TableList extends React.Component<IProps, IState> {
         return (
             <TableBody>
                 {
-                    this.state.item.database.tables.map((item: MySqlModels.ITableInfo, index: number) => {
+                    this.props.item.database.tables.map((item: MySqlModels.ITableInfo, index: number) => {
                         const isItemSelected = this.isSelected(item, index);
                         return (
                             <TableRow key={index} selected={isItemSelected} onClick={() => this.rowClick(item, index)} onDoubleClick={() => this.rowDoubleClick(item, index)}>
@@ -215,7 +213,7 @@ export default class TableList extends React.Component<IProps, IState> {
     }
 
     renderTable = () => {
-        if (this.state.item.database.tables.length > 0) {
+        if (this.props.item.database.tables.length > 0) {
             return (
                 <Table>
                     {this.renderTableHeader()}
@@ -262,3 +260,17 @@ export default class TableList extends React.Component<IProps, IState> {
         )
     }
 }
+
+
+const mapStateToProps = (state: any) => {
+    return {
+        item: state.reduContent.selectItem
+    }
+};
+
+const mapDispatchToProps = (dispatch: any) => ({
+    addChipItem: (selectItem: ISelectItem, name: string) => dispatch(addChipItemAction(selectItem, name)),
+    getTables: (selectItem: ISelectItem, tables: Array<MySqlModels.ITableInfo>) => dispatch(getTablesAction(selectItem, tables))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(TableList)

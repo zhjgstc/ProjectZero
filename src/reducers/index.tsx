@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux'
-import { calculate } from './calculate';
 import { reduLeftBar } from './Main/ReduLeftBar';
+import { reduContent } from './Main/ReduContent';
 
 export default combineReducers({
-    calculate,
-    reduLeftBar
+    reduLeftBar,
+    reduContent
 })

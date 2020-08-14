@@ -12,13 +12,13 @@ const initData = {
 
 const reduLeftBar = (state: ReduxState = initData, action: IAction) => {
     switch (action.type) {
-        case INITHOST: {
+        case "INITHOST": {
             return {
                 hosts: action.hosts
             }
         }
-        case ADDHOST:
-        case OPENHOST: {
+        case "ADDHOST":
+        case "OPENHOST": {
             var hosts = utils.Loadsh.clone(action.hosts);
             return {
                 hosts: hosts
