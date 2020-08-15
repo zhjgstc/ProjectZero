@@ -11,21 +11,17 @@ import * as DBHelper from '../../component/db-helper/MySql';
 import * as Utils from '../../utils/Utils';
 import Confirm from '../../component/confirm/confirm';
 import { initHostAction, updateHostAction, closeHostAction, delHostAction, useDataBaseAction } from '../../actions/Main/LeftBarAction';
-import { selectDataBaseAction, ISelectItem } from '../../actions/Main/ContentAction';
+import { selectDataBaseAction, ISelectItem, addChipItemAction } from '../../actions/Main/ContentAction';
 
 interface IProps {
     source: Array<MySqlModels.IHostItem>,
-    onRefresh: { (item: MySqlModels.IConfig, action: string) },
-    onSelectDataBase: any,
-    changeItem?: MySqlModels.IConfig,
-    changeAction?: string,
-    onRightMenuClick: { (item: MySqlModels.IHostItem, action: string) },
     initHosts: () => any,
     updateHost: { (item: MySqlModels.IHostItem) },
     closeHost: { (item: MySqlModels.IHostItem) },
     delHost: { (item: MySqlModels.IHostItem) },
     useDataBase: { (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) },
-    selectDataBase: { (item: ISelectItem) }
+    selectDataBase: { (item: ISelectItem) },
+    addChipItem: { (selectItem: ISelectItem, name: string) }
 }
 
 interface IState {
@@ -45,44 +41,10 @@ class LeftBar extends React.Component<IProps, IState>{
 
     componentDidMount() {
         this.props.initHosts();
-        //this.bindDataSource(this.props.source);
     }
 
     componentWillReceiveProps(nextProps: IProps) {
-        if (nextProps.changeItem && nextProps.changeAction) {
-            var action = nextProps.changeAction;
-            var changeItem = nextProps.changeItem;
-            var list = this.state.list;
-            if (action === "new") {
-                list.push({
-                    item: changeItem,
-                    open: false,
-                    databases: new Array<MySqlModels.IDatabase>()
-                });
-            } else if (action === "delete") {
-                console.log("删除")
-                for (let index = 0; index < list.length; index++) {
-                    const element = list[index];
-                    if (element.item.id === changeItem.id) {
-                        if (element.open && element.conn) {
-                            element.conn.end();
-                        }
-                        list.splice(index, 1)
-                        break;
-                    }
-                }
-            } else if (action === "update") {
-                for (let index = 0; index < list.length; index++) {
-                    const element = list[index];
-                    if (element.item.id === changeItem.id) {
-                        list[index].item = changeItem;
-                        break;
-                    }
-                }
-            }
-            console.log(list);
-            this.setState({ list: list });
-        }
+
     }
     /**
      * server右击事件
@@ -90,7 +52,7 @@ class LeftBar extends React.Component<IProps, IState>{
      * @param item 元素对应的数据
      */
     contextMenu = (e: any, item: MySqlModels.IHostItem) => {
-        const onRightMenuClick = this.props.onRightMenuClick;
+        const addChipItem = this.props.addChipItem;
         const { remote } = window.require('electron');
         const { Menu, MenuItem } = remote;
 
@@ -133,7 +95,12 @@ class LeftBar extends React.Component<IProps, IState>{
             menu.append(new MenuItem({
                 label: '新建查询',
                 click: function () {
-                    onRightMenuClick(item, "新建查询");
+                    addChipItem({
+                        host: item,
+                        database: null,
+                        action: "查询"
+                    }, "查询");
+
                     console.log('item 1 clicked')
                 }
             }));
@@ -374,7 +341,8 @@ const mapDispatchToProps = (dispatch: any) => ({
     closeHost: (item: MySqlModels.IHostItem) => dispatch(closeHostAction(item)),
     delHost: (item: MySqlModels.IHostItem) => dispatch(delHostAction(item)),
     useDataBase: (host: MySqlModels.IHostItem, database: MySqlModels.IDatabase) => dispatch(useDataBaseAction(host, database)),
-    selectDataBase: (item: ISelectItem) => dispatch(selectDataBaseAction(item))
+    selectDataBase: (item: ISelectItem) => dispatch(selectDataBaseAction(item)),
+    addChipItem: (item: ISelectItem, name: string) => dispatch(addChipItemAction(item, name))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(LeftBar)

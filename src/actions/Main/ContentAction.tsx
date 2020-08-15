@@ -7,6 +7,7 @@ import MySqlFunction from '../../component/content/MySql/Function/Function';
 import MySqlTable from '../../component/content/MySql/Table/Table';
 import MySqlView from '../../component/content/MySql/View/View';
 import MySqlPageTable from '../../page/MySql/Table/Table';
+import MySqlPageQuery from '../../page/MySql/Query/Query';
 
 export const SELECTDATABASE = "SELECTDATABASE";
 export const ADDCHIPITEM = "ADDCHIPITEM";
@@ -39,31 +40,30 @@ export interface ISelectItem {
 
 
 var ChipList = new Array<IChipItem>();
-
+ChipList.push({
+    title: "对象",
+    name: "",
+    host: null,
+    database: null,
+    action: null,
+    component: <div></div>,
+    selected: false
+});
 
 /**
  * 点击打开的数据库和数据库内的项
  * @param item 数据库选择项
  */
 export const selectDataBaseAction = (item: ISelectItem) => {
-    if (ChipList.length == 0) {
-        ChipList.push({
-            title: "对象",
-            name: "",
-            host: item.host,
-            database: item.database,
-            action: item.action,
-            component: getMainComponent(item),
-            selected: true
-        });
-    } else {
-        ChipList[0].host = item.host;
-        ChipList[0].database = item.database;
-        ChipList[0].action = item.action;
-        ChipList[0].component = getMainComponent(item);
+    for (let index = 0; index < ChipList.length; index++) {
+        ChipList[index].selected = false;
     }
 
-
+    ChipList[0].host = item.host;
+    ChipList[0].database = item.database;
+    ChipList[0].action = item.action;
+    ChipList[0].component = getMainComponent(item);
+    ChipList[0].selected = true;
     return {
         type: SELECTDATABASE, selectItem: item, chipList: ChipList
     }
@@ -102,19 +102,21 @@ const getMainComponent = (item: ISelectItem) => {
  * 添加tab项
  */
 export const addChipItemAction = (selectItem: ISelectItem, name: string): IAction => {
-
-    var title = name + "@" + selectItem.database.name + "(" + selectItem.host.item.name + ")";
+    console.log(selectItem);
+    console.log(name);
+    var title = name ? name : "" + "@" + selectItem.database ? selectItem.database.name : "" + "(" + selectItem.host.item.name + ")";
     var flag = false;
-    for (let index = 0; index < ChipList.length; index++) {
-        const element = ChipList[index];
-        if (selectItem.host === element.host && element.title === title) {
-            flag = true;
-            ChipList[index].selected = true;
-        } else {
-            ChipList[index].selected = false;
+    if (selectItem.action !== "查询") {
+        for (let index = 0; index < ChipList.length; index++) {
+            const element = ChipList[index];
+            if (selectItem.host === element.host && element.title === title) {
+                flag = true;
+                ChipList[index].selected = true;
+            } else {
+                ChipList[index].selected = false;
+            }
         }
     }
-
 
     if (!flag) {
         var item: IChipItem = {
@@ -171,7 +173,7 @@ const getComponent = (selectItem: ISelectItem, name: string) => {
         return <MySqlPageTable host={selectItem.host} database={selectItem.database} name={name} action={selectItem.action}></MySqlPageTable>
     }
     else if (selectItem.action === "查询") {
-
+        return <MySqlPageQuery host={selectItem.host} />
     }
     else {
         return null;

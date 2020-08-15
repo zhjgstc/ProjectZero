@@ -71,7 +71,11 @@ class TableList extends React.Component<IProps, IState> {
     }
 
     initData = () => {
+        if (!this.props.item.database.name) {
+            return;
+        }
         this.setState({ selectRow: undefined });
+
         var sql = "select * from information_schema.`TABLES` where TABLE_SCHEMA = '" + this.props.item.database.name + "' ";
         sql += " order by " + this.state.orderBy + " " + this.state.order;
         DBHelper.querySql(this.props.item.host.conn, sql, (error: any, results: any, fields: any) => {
@@ -213,7 +217,7 @@ class TableList extends React.Component<IProps, IState> {
     }
 
     renderTable = () => {
-        if (this.props.item.database.tables.length > 0) {
+        if (this.props.item.database && this.props.item.database.tables && this.props.item.database.tables.length > 0) {
             return (
                 <Table>
                     {this.renderTableHeader()}

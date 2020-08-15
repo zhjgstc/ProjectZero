@@ -112,21 +112,7 @@ export default class App extends React.Component<{}, IState> {
 
                 <Grid container spacing={3} style={{ paddingTop: "10px" }}>
                     <Grid item xs={3}>
-                        <LeftBar
-                            changeItem={this.state.changeItem}
-                            changeAction={this.state.changeAction}
-                            onRightMenuClick={(host: MySqlModels.IHostItem, action: string) => {
-                                this.setState({ rightMenuAction: "", rightMenuHost: null }, () => {
-                                    this.setState({ rightMenuAction: action, rightMenuHost: host });
-                                });
-                            }}
-                            onSelectDataBase={(model: MySqlModels.IHostItem, database: MySqlModels.IDatabase, action: string) => {
-                                this.handleLeftBarOnSelected(model, database, action)
-                            }}
-                            onRefresh={(item: MySqlModels.IConfig, action: string) => {
-                                this.initData(item, action)
-                            }}
-                        ></LeftBar>
+                        <LeftBar></LeftBar>
                     </Grid>
                     <Grid item xs={9}>
                         <Content></Content>

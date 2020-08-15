@@ -2,14 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import * as MySqlModels from '../../models/MySql';
 import MySqlPageTable from '../MySql/Table/Table';
-import MysqlQuery from '../MySql/Query/Query';
 import { ISelectItem, IChipItem, setChipSelectItemAction, delChipItemAction } from '../../actions/Main/ContentAction';
 import * as Utils from '../../utils/Utils';
 import { Chip, Icon, Tooltip } from "@material-ui/core";
-import MySqlEvent from '../../component/content/MySql/Event/Event';
-import MySqlFunction from '../../component/content/MySql/Function/Function';
-import MySqlTable from '../../component/content/MySql/Table/Table';
-import MySqlView from '../../component/content/MySql/View/View';
 
 interface IProps {
     item: ISelectItem,

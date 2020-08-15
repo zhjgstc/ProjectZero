@@ -51,7 +51,6 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
                     results: results
                 });
             }
-            this.setState(this.state);
         });
     }
 
