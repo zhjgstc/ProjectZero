@@ -7,9 +7,33 @@ interface IProps {
     results: any,
     text: string
 }
-export default class Result extends React.Component<IProps, {}> {
+
+interface IState {
+    fields: any,
+    results: any,
+}
+
+export default class Result extends React.Component<IProps, IState> {
     constructor(props: any) {
         super(props);
+        this.state = {
+            fields: this.props.fields,
+            results: this.props.results
+        }
+
+    }
+
+    componentDidMount() {
+
+    }
+
+    componentWillReceiveProps(nextProps: IProps) {
+        if (nextProps.results != this.props.results) {
+            this.setState({
+                fields: nextProps.fields,
+                results: nextProps.results
+            });
+        }
     }
 
     renderTable = (col: Array<any>, list: Array<any>, tableIndex: number) => {
@@ -41,7 +65,7 @@ export default class Result extends React.Component<IProps, {}> {
                                             }
                                             return (
                                                 <TableCell key={colIndex}>
-                                                    <input type="text" value={value}/>
+                                                    <input type="text" value={value} />
                                                 </TableCell>
                                             )
                                         })
@@ -93,7 +117,7 @@ export default class Result extends React.Component<IProps, {}> {
         return (
             <div>
                 {
-                    this.renderTables(this.props.fields, this.props.results)
+                    this.renderTables(this.state.fields, this.state.results)
                 }
                 {/* {
                     this.props.fields && this.props.fields.length > 0 ? this.renderTables(this.props.fields, this.props.results) :

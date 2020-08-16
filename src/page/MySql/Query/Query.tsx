@@ -1,6 +1,7 @@
 import React from 'react';
 import * as MySqlModels from '../../../models/MySql';
 import Result from '../../../component/data-result/Result';
+import * as utils from '../../../utils/Utils';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/idea.css';
@@ -22,7 +23,7 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
         this.state = {
             fields: new Array<any>(),
             results: new Array<any>(),
-            sql: "select * from tb_project",
+            sql: "",
             text: ""
         }
 
@@ -50,8 +51,8 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
                 console.log(results);
                 console.log(fields);
                 this.setState({
-                    fields: fields,
-                    results: results
+                    fields: utils.Loadsh.clone(fields),
+                    results: utils.Loadsh.clone(results)
                 });
             }
         });
@@ -65,7 +66,7 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
                     this.querySql()
                 }}>执行sql</button>
                 <br />
-                
+
                 <CodeMirror
                     value={this.state.sql}
                     options={{
@@ -74,7 +75,10 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
                         lineNumbers: true
                     }}
                     onBeforeChange={(editor, data, value) => {
-                        this.setState({ sql:value });
+                        this.setState({ sql: value });
+                    }}
+                    onChange={(editor, value) => {
+                        console.log('controlled', { value });
                     }}
                 />
                 <br />
