@@ -1,7 +1,10 @@
 import React from 'react';
 import * as MySqlModels from '../../../models/MySql';
 import Result from '../../../component/data-result/Result';
-
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/theme/idea.css';
+require('codemirror/mode/sql/sql');
 interface IProps {
     host: MySqlModels.IHostItem
 }
@@ -19,7 +22,7 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
         this.state = {
             fields: new Array<any>(),
             results: new Array<any>(),
-            sql: "",
+            sql: "select * from tb_project",
             text: ""
         }
 
@@ -57,19 +60,30 @@ export default class MySqlQuery extends React.Component<IProps, IState> {
     render() {
         return (
             <div>
-                <br/>
-                <button onClick={() => this.querySql()}>执行sql</button>
-                <br/>
-                <textarea rows={5} value={this.state.sql}
-                    onChange={this.handleTextareaChange.bind(this)}>
-                </textarea>
-                <br/>
+                <br />
+                <button onClick={() => {
+                    this.querySql()
+                }}>执行sql</button>
+                <br />
+                
+                <CodeMirror
+                    value={this.state.sql}
+                    options={{
+                        mode: 'sql',
+                        theme: 'idea',
+                        lineNumbers: true
+                    }}
+                    onBeforeChange={(editor, data, value) => {
+                        this.setState({ sql:value });
+                    }}
+                />
+                <br />
                 <Result
                     fields={this.state.fields}
                     results={this.state.results}
                     text={this.state.text}
                 ></Result>
-                
+
             </div>
         )
     }

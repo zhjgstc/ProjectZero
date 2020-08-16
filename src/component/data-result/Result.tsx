@@ -1,5 +1,6 @@
 import React from 'react';
 import moment from 'moment';
+import { Icon, Tooltip, IconButton, Button, Table, TableHead, TableRow, TableCell, TableBody, TableSortLabel } from '@material-ui/core';
 
 interface IProps {
     fields: any,
@@ -13,23 +14,23 @@ export default class Result extends React.Component<IProps, {}> {
 
     renderTable = (col: Array<any>, list: Array<any>, tableIndex: number) => {
         return (
-            <table key={tableIndex}>
-                <thead>
-                    <tr>
+            <Table key={tableIndex}>
+                <TableHead>
+                    <TableRow>
                         {
                             col.map((item, index) => {
                                 return (
-                                    <td key={index}>{item["name"]}</td>
+                                    <TableCell key={index}>{item["name"]}</TableCell>
                                 )
                             })
                         }
-                    </tr>
-                </thead>
-                <tbody>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
                     {
                         list.map((item, index) => {
                             return (
-                                <tr key={index}>
+                                <TableRow key={index}>
                                     {
                                         col.map((colItem, colIndex) => {
                                             var value = "";
@@ -39,16 +40,18 @@ export default class Result extends React.Component<IProps, {}> {
                                                 value = item[colItem.name];
                                             }
                                             return (
-                                                <td key={colIndex}>{value}</td>
+                                                <TableCell key={colIndex}>
+                                                    <input type="text" value={value}/>
+                                                </TableCell>
                                             )
                                         })
                                     }
-                                </tr>
+                                </TableRow>
                             )
                         })
                     }
-                </tbody>
-            </table>
+                </TableBody>
+            </Table>
         )
     }
 
