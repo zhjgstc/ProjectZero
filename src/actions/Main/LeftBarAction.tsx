@@ -79,7 +79,7 @@ export const closeHostAction = (item: MySqlModels.IHostItem) => {
  */
 export const delHostAction = (item: MySqlModels.IHostItem) => {
     var index = utils.Loadsh.findIndex(HostList, { item: item.item });
-    HostList.splice(index, 1)
+    HostList.splice(index, 1);
     return {
         type: OPENHOST, hosts: HostList
     }

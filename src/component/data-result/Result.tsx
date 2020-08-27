@@ -119,10 +119,6 @@ export default class Result extends React.Component<IProps, IState> {
                 {
                     this.renderTables(this.state.fields, this.state.results)
                 }
-                {/* {
-                    this.props.fields && this.props.fields.length > 0 ? this.renderTables(this.props.fields, this.props.results) :
-                        this.props.text
-                } */}
             </div>
         )
     }
